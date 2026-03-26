@@ -16,10 +16,10 @@ export function ErrorTagPieChart({ data }: ErrorTagPieChartProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>Tan suat loi sai</CardTitle>
+          <CardTitle>Tần suất lỗi sai</CardTitle>
         </CardHeader>
         <CardContent className="flex items-center justify-center h-[300px]">
-          <p className="text-sm text-muted-foreground">Chua co du lieu loi sai</p>
+          <p className="text-sm text-muted-foreground">Chưa có dữ liệu lỗi sai</p>
         </CardContent>
       </Card>
     )
@@ -28,7 +28,7 @@ export function ErrorTagPieChart({ data }: ErrorTagPieChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tan suat loi sai</CardTitle>
+        <CardTitle>Tần suất lỗi sai</CardTitle>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={300}>
@@ -53,7 +53,7 @@ export function ErrorTagPieChart({ data }: ErrorTagPieChartProps) {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
               }}
-              formatter={(value, name) => [`${value} lan`, name]}
+              formatter={(value, name) => [`${value} lần`, name]}
             />
             <Legend />
           </PieChart>

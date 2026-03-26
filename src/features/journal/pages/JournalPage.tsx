@@ -27,26 +27,26 @@ export function JournalPage() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Nhat ky ngay</h1>
+          <h1 className="text-2xl font-bold">Nhật ký ngày</h1>
           <p className="text-sm text-muted-foreground">
-            Ghi chep nhan dinh va tam ly giao dich hang ngay
+            Ghi chép nhận định và tâm lý giao dịch hàng ngày
           </p>
         </div>
         <Button onClick={() => navigate('/journal/new')}>
           <Plus className="h-4 w-4 mr-2" />
-          Them nhat ky
+          Thêm nhật ký
         </Button>
       </div>
 
       {!journals || journals.length === 0 ? (
         <EmptyState
           icon={BookOpen}
-          title="Chua co nhat ky nao"
-          description="Bat dau ghi lai nhat ky giao dich hang ngay de theo doi tam ly."
+          title="Chưa có nhật ký nào"
+          description="Bắt đầu ghi lại nhật ký giao dịch hàng ngày để theo dõi tâm lý."
           action={
             <Button onClick={() => navigate('/journal/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              Them nhat ky dau tien
+              Thêm nhật ký đầu tiên
             </Button>
           }
         />

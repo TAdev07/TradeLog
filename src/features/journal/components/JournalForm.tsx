@@ -60,7 +60,7 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Date */}
       <div className="space-y-2">
-        <Label htmlFor="date">Ngay</Label>
+        <Label htmlFor="date">Ngày</Label>
         <Input id="date" type="date" {...register('date')} />
         {errors.date && (
           <p className="text-sm text-destructive">{errors.date.message}</p>
@@ -70,7 +70,7 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
       {/* Sessions */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Phien giao dich</CardTitle>
+          <CardTitle className="text-base">Phiên giao dịch</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-4">
@@ -88,11 +88,11 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
             ))}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="session_notes">Nhan dinh phien</Label>
+            <Label htmlFor="session_notes">Nhận định phiên</Label>
             <Textarea
               id="session_notes"
               rows={3}
-              placeholder="Nhan dinh ve dien bien cac phien hom nay..."
+              placeholder="Nhận định về diễn biến các phiên hôm nay..."
               {...register('session_notes')}
             />
           </div>
@@ -101,7 +101,7 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
 
       {/* Macro Events */}
       <div className="space-y-2">
-        <Label htmlFor="macro_events">Tin tuc vi mo</Label>
+        <Label htmlFor="macro_events">Tin tức vĩ mô</Label>
         <Textarea
           id="macro_events"
           rows={2}
@@ -114,7 +114,7 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
-            Tam ly giao dich:{' '}
+            Tâm lý giao dịch:{' '}
             <span className={getMoodColor(moodScore)}>{moodScore}/10</span>
           </CardTitle>
         </CardHeader>
@@ -127,16 +127,16 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
             onValueChange={([v]) => setValue('mood_score', v)}
           />
           <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Rat te</span>
-            <span>Binh thuong</span>
-            <span>Tuyet voi</span>
+            <span>Rất tệ</span>
+            <span>Bình thường</span>
+            <span>Tuyệt vời</span>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="mood_notes">Ghi chu tam ly</Label>
+            <Label htmlFor="mood_notes">Ghi chú tâm lý</Label>
             <Textarea
               id="mood_notes"
               rows={2}
-              placeholder="Tinh trang tam ly, cam xuc trong ngay..."
+              placeholder="Tình trạng tâm lý, cảm xúc trong ngày..."
               {...register('mood_notes')}
             />
           </div>
@@ -145,17 +145,17 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
 
       {/* Daily Summary */}
       <div className="space-y-2">
-        <Label htmlFor="daily_summary">Tong ket ngay</Label>
+        <Label htmlFor="daily_summary">Tổng kết ngày</Label>
         <Textarea
           id="daily_summary"
           rows={3}
-          placeholder="Bai hoc rut ra, dieu can cai thien..."
+          placeholder="Bài học rút ra, điều cần cải thiện..."
           {...register('daily_summary')}
         />
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Dang luu...' : journal ? 'Cap nhat' : 'Luu nhat ky'}
+        {isLoading ? 'Đang lưu...' : journal ? 'Cập nhật' : 'Lưu nhật ký'}
       </Button>
     </form>
   )

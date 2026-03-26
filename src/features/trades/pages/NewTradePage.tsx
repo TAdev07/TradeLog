@@ -26,7 +26,7 @@ export function NewTradePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Them lenh moi</h1>
+      <h1 className="text-2xl font-bold mb-6">Thêm lệnh mới</h1>
 
       {!checklistDone ? (
         <PreTradeChecklist onComplete={() => setChecklistDone(true)} />
@@ -34,7 +34,7 @@ export function NewTradePage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Thong tin lenh</CardTitle>
+              <CardTitle>Thông tin lệnh</CardTitle>
             </CardHeader>
             <CardContent>
               <TradeForm
@@ -46,7 +46,7 @@ export function NewTradePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Anh chup bieu do</CardTitle>
+              <CardTitle>Ảnh chụp biểu đồ</CardTitle>
             </CardHeader>
             <CardContent>
               <ScreenshotUpload

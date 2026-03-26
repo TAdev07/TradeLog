@@ -10,7 +10,7 @@ interface StatsOverviewProps {
 export function StatsOverview({ stats }: StatsOverviewProps) {
   const cards = [
     {
-      title: 'Tong PnL',
+      title: 'Tổng PnL',
       value: formatCurrency(stats.totalPnlDollars),
       subtitle: formatPips(stats.totalPnlPips),
       icon: stats.totalPnlDollars >= 0 ? TrendingUp : TrendingDown,
@@ -24,14 +24,14 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
       color: stats.winRate >= 50 ? 'text-profit' : 'text-loss',
     },
     {
-      title: 'R:R Trung binh',
+      title: 'R:R Trung bình',
       value: stats.avgRiskReward.toFixed(2),
       subtitle: `Best: ${formatCurrency(stats.bestTrade)}`,
       icon: BarChart3,
       color: 'text-foreground',
     },
     {
-      title: 'Tong lenh',
+      title: 'Tổng lệnh',
       value: stats.totalTrades.toString(),
       subtitle: `Streak: ${stats.currentStreak > 0 ? '+' : ''}${stats.currentStreak}`,
       icon: BarChart3,

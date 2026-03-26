@@ -40,13 +40,13 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
       <div className="grid grid-cols-2 gap-4">
         {/* Pair */}
         <div className="space-y-2">
-          <Label>Cap tien</Label>
+          <Label>Cặp tiền</Label>
           <Select
             defaultValue="XAUUSD"
             onValueChange={(v) => setValue('pair', v)}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Chon cap tien" />
+              <SelectValue placeholder="Chọn cặp tiền" />
             </SelectTrigger>
             <SelectContent>
               {TRADING_PAIRS.map((pair) => (
@@ -63,7 +63,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
 
         {/* Direction */}
         <div className="space-y-2">
-          <Label>Vi the</Label>
+          <Label>Vị thế</Label>
           <div className="flex gap-2">
             <Button
               type="button"
@@ -88,7 +88,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
       <div className="grid grid-cols-2 gap-4">
         {/* Lot Size */}
         <div className="space-y-2">
-          <Label htmlFor="lot_size">Khoi luong (Lot)</Label>
+          <Label htmlFor="lot_size">Khối lượng (Lot)</Label>
           <Input
             id="lot_size"
             type="number"
@@ -103,7 +103,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
 
         {/* Entry Price */}
         <div className="space-y-2">
-          <Label htmlFor="entry_price">Gia vao lenh</Label>
+          <Label htmlFor="entry_price">Giá vào lệnh</Label>
           <Input
             id="entry_price"
             type="number"
@@ -150,7 +150,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? 'Dang luu...' : 'Mo lenh'}
+        {isLoading ? 'Đang lưu...' : 'Mở lệnh'}
       </Button>
     </form>
   )

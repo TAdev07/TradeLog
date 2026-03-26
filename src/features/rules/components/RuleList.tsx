@@ -16,8 +16,8 @@ export function RuleList({ rules, onEdit, onDelete }: RuleListProps) {
     return (
       <EmptyState
         icon={Shield}
-        title="Chua co quy tac nao"
-        description="Bat dau them cac quy tac giao dich de xay dung ky luat trading."
+        title="Chưa có quy tắc nào"
+        description="Bắt đầu thêm các quy tắc giao dịch để xây dựng kỷ luật trading."
       />
     )
   }

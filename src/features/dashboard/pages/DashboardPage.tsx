@@ -20,7 +20,7 @@ export function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold">Dashboard</h1>
           <p className="text-sm text-muted-foreground">
-            Tong quan hieu suat giao dich
+            Tổng quan hiệu suất giao dịch
           </p>
         </div>
         <PeriodFilter />

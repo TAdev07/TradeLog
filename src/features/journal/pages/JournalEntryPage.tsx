@@ -33,7 +33,7 @@ export function JournalEntryPage() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-2xl font-bold">
-          {isEditing ? 'Sua nhat ky' : 'Them nhat ky moi'}
+          {isEditing ? 'Sửa nhật ký' : 'Thêm nhật ký mới'}
         </h1>
       </div>
 

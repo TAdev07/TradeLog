@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
 export const journalSchema = z.object({
-  date: z.string().min(1, 'Chon ngay'),
+  date: z.string().min(1, 'Chọn ngày'),
   sessions: z.array(z.enum(['asian', 'european', 'us'])).default([]),
   session_notes: z.string().optional(),
   macro_events: z.string().optional(),
