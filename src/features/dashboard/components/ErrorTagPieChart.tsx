@@ -53,7 +53,7 @@ export function ErrorTagPieChart({ data }: ErrorTagPieChartProps) {
                 border: '1px solid hsl(var(--border))',
                 borderRadius: '8px',
               }}
-              formatter={(value: number, name: string) => [`${value} lan`, name]}
+              formatter={(value, name) => [`${value} lan`, name]}
             />
             <Legend />
           </PieChart>

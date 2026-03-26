@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 export const tradeEntrySchema = z.object({
   pair: z.string().min(1, 'Chon cap tien'),
-  direction: z.enum(['long', 'short'], { required_error: 'Chon vi the' }),
+  direction: z.enum(['long', 'short'], { message: 'Chon vi the' }),
   lot_size: z.coerce.number().positive('Lot size phai lon hon 0'),
   entry_price: z.coerce.number().positive('Gia vao lenh phai lon hon 0'),
   stop_loss: z.coerce.number().positive('Stoploss phai lon hon 0').optional(),
@@ -10,7 +10,7 @@ export const tradeEntrySchema = z.object({
 })
 
 export const tradeCloseSchema = z.object({
-  status: z.enum(['win', 'loss', 'breakeven'], { required_error: 'Chon trang thai' }),
+  status: z.enum(['win', 'loss', 'breakeven'], { message: 'Chon trang thai' }),
   close_price: z.coerce.number().positive('Gia dong lenh phai lon hon 0'),
   pnl_dollars: z.coerce.number(),
   pnl_pips: z.coerce.number(),

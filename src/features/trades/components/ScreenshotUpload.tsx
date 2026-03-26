@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
 import { ImagePlus, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { useScreenshot } from '../hooks/useScreenshot'
 
 interface ScreenshotUploadProps {

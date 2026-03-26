@@ -26,7 +26,7 @@ export function JournalForm({ journal, onSubmit, isLoading }: JournalFormProps) 
     watch,
     formState: { errors },
   } = useForm<JournalFormData>({
-    resolver: zodResolver(journalSchema),
+    resolver: zodResolver(journalSchema) as never,
     defaultValues: {
       date: journal?.date ?? format(new Date(), 'yyyy-MM-dd'),
       sessions: journal?.sessions ?? [],

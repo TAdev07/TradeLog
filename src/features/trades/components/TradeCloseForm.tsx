@@ -22,7 +22,7 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
     watch,
     formState: { errors },
   } = useForm<TradeCloseFormData>({
-    resolver: zodResolver(tradeCloseSchema),
+    resolver: zodResolver(tradeCloseSchema) as never,
     defaultValues: {
       error_tags: [],
     },
