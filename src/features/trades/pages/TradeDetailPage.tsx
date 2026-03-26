@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -25,19 +25,19 @@ export function TradeDetailPage() {
   const closeTrade = useCloseTrade()
   const deleteTrade = useDeleteTrade()
   const [closeDialogOpen, setCloseDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   if (isLoading || !trade) return <LoadingSpinner className="mt-20" />
 
   const handleClose = async (data: TradeCloseFormData) => {
-    await closeTrade.mutateAsync({ id: trade.id, data })
+    await closeTrade.mutateAsync({ id: trade.id, data, trade })
     setCloseDialogOpen(false)
   }
 
   const handleDelete = async () => {
-    if (window.confirm('Bạn có chắc muốn xoá lệnh này?')) {
-      await deleteTrade.mutateAsync(trade.id)
-      navigate('/trades')
-    }
+    await deleteTrade.mutateAsync(trade.id)
+    setDeleteDialogOpen(false)
+    navigate('/trades')
   }
 
   return (
@@ -195,8 +195,9 @@ export function TradeDetailPage() {
           <Button
             variant="outline"
             className="text-destructive"
-            onClick={handleDelete}
+            onClick={() => setDeleteDialogOpen(true)}
           >
+            <Trash2 className="h-4 w-4 mr-2" />
             Xoá lệnh
           </Button>
         </div>
@@ -209,10 +210,31 @@ export function TradeDetailPage() {
             <DialogTitle>Đóng lệnh {trade.pair}</DialogTitle>
           </DialogHeader>
           <TradeCloseForm
+            trade={trade}
             onSubmit={handleClose}
             onCancel={() => setCloseDialogOpen(false)}
             isLoading={closeTrade.isPending}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Xác nhận xoá lệnh</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Bạn có chắc muốn xoá lệnh <strong>{trade.pair}</strong>? Hành động này không thể hoàn tác.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Huỷ
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={deleteTrade.isPending}>
+              {deleteTrade.isPending ? 'Đang xoá...' : 'Xoá lệnh'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

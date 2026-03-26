@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { TRADING_PAIRS } from '@/lib/constants'
+import { calculatePips } from '@/lib/utils'
 
 interface TradeFormProps {
   onSubmit: (data: TradeEntryFormData) => void
@@ -34,6 +35,17 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
   })
 
   const direction = watch('direction')
+  const pair = watch('pair')
+  const entryPrice = watch('entry_price')
+  const stopLoss = watch('stop_loss')
+  const takeProfit = watch('take_profit')
+
+  const slPips = entryPrice && stopLoss
+    ? Math.abs(calculatePips(pair, entryPrice, stopLoss))
+    : null
+  const tpPips = entryPrice && takeProfit
+    ? Math.abs(calculatePips(pair, entryPrice, takeProfit))
+    : null
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -120,7 +132,12 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
       <div className="grid grid-cols-2 gap-4">
         {/* Stop Loss */}
         <div className="space-y-2">
-          <Label htmlFor="stop_loss">Stoploss</Label>
+          <Label htmlFor="stop_loss">
+            Stoploss
+            {slPips !== null && (
+              <span className="text-xs text-loss ml-2">({slPips.toFixed(1)} pips)</span>
+            )}
+          </Label>
           <Input
             id="stop_loss"
             type="number"
@@ -135,7 +152,12 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
 
         {/* Take Profit */}
         <div className="space-y-2">
-          <Label htmlFor="take_profit">Take Profit</Label>
+          <Label htmlFor="take_profit">
+            Take Profit
+            {tpPips !== null && (
+              <span className="text-xs text-profit ml-2">({tpPips.toFixed(1)} pips)</span>
+            )}
+          </Label>
           <Input
             id="take_profit"
             type="number"
@@ -148,6 +170,14 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
           )}
         </div>
       </div>
+
+      {/* R:R Preview */}
+      {slPips && tpPips ? (
+        <div className="text-sm bg-muted/50 rounded-lg p-3">
+          <span className="text-muted-foreground">R:R dự kiến: </span>
+          <span className="font-medium">{(tpPips / slPips).toFixed(2)}</span>
+        </div>
+      ) : null}
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Đang lưu...' : 'Mở lệnh'}

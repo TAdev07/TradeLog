@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { calculateRiskReward } from '@/lib/utils'
 import type { Trade } from '@/types/database'
 import type { TradeEntryFormData, TradeCloseFormData } from '../schemas/trade.schema'
 
@@ -77,6 +79,10 @@ export function useCreateTrade() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TRADES_KEY })
+      toast.success('Mở lệnh thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi mở lệnh', { description: error.message })
     },
   })
 }
@@ -85,10 +91,12 @@ export function useCloseTrade() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: TradeCloseFormData }) => {
-      const rr = data.pnl_dollars !== 0 ? Math.abs(data.pnl_dollars / (data.pnl_dollars < 0 ? data.pnl_dollars : 1)) : null
+    mutationFn: async ({ id, data, trade: sourceTrade }: { id: string; data: TradeCloseFormData; trade?: Trade }) => {
+      const rr = sourceTrade
+        ? calculateRiskReward(sourceTrade.entry_price, data.close_price, sourceTrade.stop_loss, sourceTrade.direction)
+        : null
 
-      const { data: trade, error } = await supabase
+      const { data: updatedTrade, error } = await supabase
         .from('trades')
         .update({
           status: data.status,
@@ -106,10 +114,14 @@ export function useCloseTrade() {
         .single()
 
       if (error) throw error
-      return trade
+      return updatedTrade
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TRADES_KEY })
+      toast.success('Đóng lệnh thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi đóng lệnh', { description: error.message })
     },
   })
 }
@@ -124,6 +136,10 @@ export function useDeleteTrade() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: TRADES_KEY })
+      toast.success('Đã xoá lệnh')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi xoá lệnh', { description: error.message })
     },
   })
 }

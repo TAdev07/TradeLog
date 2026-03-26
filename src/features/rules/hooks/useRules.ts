@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { TradingRule } from '@/types/database'
 import type { RuleFormData } from '../schemas/rule.schema'
@@ -47,6 +48,10 @@ export function useCreateRule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RULES_KEY })
+      toast.success('Thêm quy tắc thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi thêm quy tắc', { description: error.message })
     },
   })
 }
@@ -73,6 +78,10 @@ export function useUpdateRule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RULES_KEY })
+      toast.success('Cập nhật quy tắc thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi cập nhật quy tắc', { description: error.message })
     },
   })
 }
@@ -87,6 +96,10 @@ export function useDeleteRule() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: RULES_KEY })
+      toast.success('Đã xoá quy tắc')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi xoá quy tắc', { description: error.message })
     },
   })
 }
