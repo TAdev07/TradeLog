@@ -23,7 +23,7 @@ export function RuleForm({ rule, onSubmit, onCancel, isLoading }: RuleFormProps)
     watch,
     formState: { errors },
   } = useForm<RuleFormData>({
-    resolver: zodResolver(ruleSchema),
+    resolver: zodResolver(ruleSchema) as never,
     defaultValues: {
       title: rule?.title ?? '',
       description: rule?.description ?? '',

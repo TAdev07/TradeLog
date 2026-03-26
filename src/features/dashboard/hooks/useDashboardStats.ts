@@ -106,13 +106,14 @@ export function useDashboardStats(period: 'week' | 'month' | 'all') {
   return useQuery({
     queryKey: ['dashboard-stats', period],
     queryFn: async () => {
-      const { data: trades, error } = await supabase
+      const { data, error } = await supabase
         .from('trades')
         .select('*')
         .order('opened_at', { ascending: false })
 
       if (error) throw error
 
+      const trades = (data ?? []) as Trade[]
       const dateFilter = getDateFilter(period)
       const filteredTrades = dateFilter
         ? trades.filter((t) => isAfter(new Date(t.opened_at), dateFilter))

@@ -26,7 +26,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
     watch,
     formState: { errors },
   } = useForm<TradeEntryFormData>({
-    resolver: zodResolver(tradeEntrySchema),
+    resolver: zodResolver(tradeEntrySchema) as never,
     defaultValues: {
       pair: 'XAUUSD',
       direction: 'long',
