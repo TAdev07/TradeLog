@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import type { DailyJournal } from '@/types/database'
 import type { JournalFormData } from '../schemas/journal.schema'
@@ -66,6 +67,10 @@ export function useCreateJournal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: JOURNAL_KEY })
+      toast.success('Lưu nhật ký thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi lưu nhật ký', { description: error.message })
     },
   })
 }
@@ -96,6 +101,10 @@ export function useUpdateJournal() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: JOURNAL_KEY })
+      toast.success('Cập nhật nhật ký thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi cập nhật nhật ký', { description: error.message })
     },
   })
 }

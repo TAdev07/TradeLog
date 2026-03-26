@@ -22,6 +22,7 @@ export function RulesPage() {
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<TradingRule | undefined>()
+  const [deletingRuleId, setDeletingRuleId] = useState<string | null>(null)
 
   const handleCreate = () => {
     setEditingRule(undefined)
@@ -42,9 +43,10 @@ export function RulesPage() {
     setDialogOpen(false)
   }
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Bạn có chắc muốn xoá quy tắc này?')) {
-      await deleteRule.mutateAsync(id)
+  const handleDeleteConfirm = async () => {
+    if (deletingRuleId) {
+      await deleteRule.mutateAsync(deletingRuleId)
+      setDeletingRuleId(null)
     }
   }
 
@@ -68,9 +70,10 @@ export function RulesPage() {
       <RuleList
         rules={rules ?? []}
         onEdit={handleEdit}
-        onDelete={handleDelete}
+        onDelete={(id) => setDeletingRuleId(id)}
       />
 
+      {/* Create/Edit dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
@@ -84,6 +87,26 @@ export function RulesPage() {
             onCancel={() => setDialogOpen(false)}
             isLoading={createRule.isPending || updateRule.isPending}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete confirm dialog */}
+      <Dialog open={!!deletingRuleId} onOpenChange={() => setDeletingRuleId(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Xác nhận xoá quy tắc</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Bạn có chắc muốn xoá quy tắc này? Hành động này không thể hoàn tác.
+          </p>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setDeletingRuleId(null)}>
+              Huỷ
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm} disabled={deleteRule.isPending}>
+              {deleteRule.isPending ? 'Đang xoá...' : 'Xoá quy tắc'}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

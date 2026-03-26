@@ -6,15 +6,17 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { ErrorTagSelect } from './ErrorTagSelect'
-import { cn } from '@/lib/utils'
+import { cn, calculatePips, calculateRiskReward, getPnlColor } from '@/lib/utils'
+import type { Trade } from '@/types/database'
 
 interface TradeCloseFormProps {
+  trade: Trade
   onSubmit: (data: TradeCloseFormData) => void
   onCancel: () => void
   isLoading?: boolean
 }
 
-export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseFormProps) {
+export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCloseFormProps) {
   const {
     register,
     handleSubmit,
@@ -30,6 +32,19 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
 
   const status = watch('status')
   const errorTags = watch('error_tags')
+  const closePrice = watch('close_price')
+
+  // Auto-calculate pips when close price changes
+  const directedPips = closePrice
+    ? (trade.direction === 'long'
+        ? calculatePips(trade.pair, trade.entry_price, closePrice)
+        : calculatePips(trade.pair, closePrice, trade.entry_price))
+    : null
+
+  // Auto-calculate R:R
+  const autoRR = closePrice
+    ? calculateRiskReward(trade.entry_price, closePrice, trade.stop_loss, trade.direction)
+    : null
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -98,6 +113,28 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
           />
         </div>
       </div>
+
+      {/* Auto-calculated preview */}
+      {closePrice > 0 && (
+        <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
+          {directedPips !== null && (
+            <div>
+              <span className="text-muted-foreground">Pips ước tính: </span>
+              <span className={cn('font-medium', getPnlColor(directedPips))}>
+                {directedPips > 0 ? '+' : ''}{directedPips.toFixed(1)}
+              </span>
+            </div>
+          )}
+          {autoRR !== null && (
+            <div>
+              <span className="text-muted-foreground">R:R: </span>
+              <span className={cn('font-medium', getPnlColor(autoRR))}>
+                {autoRR.toFixed(2)}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Error Tags */}
       <div className="space-y-2">
