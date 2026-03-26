@@ -43,7 +43,7 @@ export function RulesPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('Ban co chac muon xoa quy tac nay?')) {
+    if (window.confirm('Bạn có chắc muốn xoá quy tắc này?')) {
       await deleteRule.mutateAsync(id)
     }
   }
@@ -54,14 +54,14 @@ export function RulesPage() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Ky luat giao dich</h1>
+          <h1 className="text-2xl font-bold">Kỷ luật giao dịch</h1>
           <p className="text-sm text-muted-foreground">
-            Quan ly cac quy tac va checklist truoc khi vao lenh
+            Quản lý các quy tắc và checklist trước khi vào lệnh
           </p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-2" />
-          Them quy tac
+          Thêm quy tắc
         </Button>
       </div>
 
@@ -75,7 +75,7 @@ export function RulesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingRule ? 'Sua quy tac' : 'Them quy tac moi'}
+              {editingRule ? 'Sửa quy tắc' : 'Thêm quy tắc mới'}
             </DialogTitle>
           </DialogHeader>
           <RuleForm

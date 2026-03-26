@@ -70,7 +70,7 @@ export function ScreenshotUpload({ urls, onChange }: ScreenshotUploadProps) {
         >
           <ImagePlus className="h-6 w-6 text-muted-foreground mb-1" />
           <span className="text-xs text-muted-foreground">
-            {uploading ? 'Uploading...' : 'Them anh'}
+            {uploading ? 'Đang tải...' : 'Thêm ảnh'}
           </span>
         </button>
       </div>

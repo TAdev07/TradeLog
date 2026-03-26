@@ -1,17 +1,17 @@
 import { z } from 'zod'
 
 export const tradeEntrySchema = z.object({
-  pair: z.string().min(1, 'Chon cap tien'),
-  direction: z.enum(['long', 'short'], { message: 'Chon vi the' }),
-  lot_size: z.coerce.number().positive('Lot size phai lon hon 0'),
-  entry_price: z.coerce.number().positive('Gia vao lenh phai lon hon 0'),
-  stop_loss: z.coerce.number().positive('Stoploss phai lon hon 0').optional(),
-  take_profit: z.coerce.number().positive('Take profit phai lon hon 0').optional(),
+  pair: z.string().min(1, 'Chọn cặp tiền'),
+  direction: z.enum(['long', 'short'], { message: 'Chọn vị thế' }),
+  lot_size: z.coerce.number().positive('Lot size phải lớn hơn 0'),
+  entry_price: z.coerce.number().positive('Giá vào lệnh phải lớn hơn 0'),
+  stop_loss: z.coerce.number().positive('Stoploss phải lớn hơn 0').optional(),
+  take_profit: z.coerce.number().positive('Take profit phải lớn hơn 0').optional(),
 })
 
 export const tradeCloseSchema = z.object({
-  status: z.enum(['win', 'loss', 'breakeven'], { message: 'Chon trang thai' }),
-  close_price: z.coerce.number().positive('Gia dong lenh phai lon hon 0'),
+  status: z.enum(['win', 'loss', 'breakeven'], { message: 'Chọn trạng thái' }),
+  close_price: z.coerce.number().positive('Giá đóng lệnh phải lớn hơn 0'),
   pnl_dollars: z.coerce.number(),
   pnl_pips: z.coerce.number(),
   emotion_notes: z.string().optional(),

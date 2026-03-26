@@ -34,7 +34,7 @@ export function TradeDetailPage() {
   }
 
   const handleDelete = async () => {
-    if (window.confirm('Ban co chac muon xoa lenh nay?')) {
+    if (window.confirm('Bạn có chắc muốn xoá lệnh này?')) {
       await deleteTrade.mutateAsync(trade.id)
       navigate('/trades')
     }
@@ -145,7 +145,7 @@ export function TradeDetailPage() {
         {(trade.error_tags.length > 0 || trade.emotion_notes) && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Tam ly & Loi sai</CardTitle>
+              <CardTitle className="text-base">Tâm lý & Lỗi sai</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
               {trade.error_tags.length > 0 && (
@@ -168,7 +168,7 @@ export function TradeDetailPage() {
         {trade.screenshot_urls.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Bieu do</CardTitle>
+              <CardTitle className="text-base">Biểu đồ</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
@@ -189,7 +189,7 @@ export function TradeDetailPage() {
         <div className="flex gap-3">
           {trade.status === 'open' && (
             <Button className="flex-1" onClick={() => setCloseDialogOpen(true)}>
-              Dong lenh
+              Đóng lệnh
             </Button>
           )}
           <Button
@@ -197,7 +197,7 @@ export function TradeDetailPage() {
             className="text-destructive"
             onClick={handleDelete}
           >
-            Xoa lenh
+            Xoá lệnh
           </Button>
         </div>
       </div>
@@ -206,7 +206,7 @@ export function TradeDetailPage() {
       <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
-            <DialogTitle>Dong lenh {trade.pair}</DialogTitle>
+            <DialogTitle>Đóng lệnh {trade.pair}</DialogTitle>
           </DialogHeader>
           <TradeCloseForm
             onSubmit={handleClose}

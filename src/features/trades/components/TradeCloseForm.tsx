@@ -35,7 +35,7 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Status */}
       <div className="space-y-2">
-        <Label>Ket qua</Label>
+        <Label>Kết quả</Label>
         <div className="flex gap-2">
           {(['win', 'loss', 'breakeven'] as const).map((s) => (
             <Button
@@ -50,7 +50,7 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
               )}
               onClick={() => setValue('status', s)}
             >
-              {s === 'win' ? 'Win' : s === 'loss' ? 'Loss' : 'Hoa von'}
+              {s === 'win' ? 'Win' : s === 'loss' ? 'Loss' : 'Hoà vốn'}
             </Button>
           ))}
         </div>
@@ -62,7 +62,7 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
       <div className="grid grid-cols-3 gap-4">
         {/* Close Price */}
         <div className="space-y-2">
-          <Label htmlFor="close_price">Gia dong</Label>
+          <Label htmlFor="close_price">Giá đóng</Label>
           <Input
             id="close_price"
             type="number"
@@ -101,7 +101,7 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
 
       {/* Error Tags */}
       <div className="space-y-2">
-        <Label>Loi sai (tags)</Label>
+        <Label>Lỗi sai (tags)</Label>
         <ErrorTagSelect
           value={errorTags}
           onChange={(tags) => setValue('error_tags', tags)}
@@ -110,21 +110,21 @@ export function TradeCloseForm({ onSubmit, onCancel, isLoading }: TradeCloseForm
 
       {/* Emotion Notes */}
       <div className="space-y-2">
-        <Label htmlFor="emotion_notes">Ghi chu cam xuc</Label>
+        <Label htmlFor="emotion_notes">Ghi chú cảm xúc</Label>
         <Textarea
           id="emotion_notes"
           rows={3}
-          placeholder="Cam xuc khi giao dich, ly do vao lenh, bai hoc rut ra..."
+          placeholder="Cảm xúc khi giao dịch, lý do vào lệnh, bài học rút ra..."
           {...register('emotion_notes')}
         />
       </div>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Huy
+          Huỷ
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Dang luu...' : 'Dong lenh'}
+          {isLoading ? 'Đang lưu...' : 'Đóng lệnh'}
         </Button>
       </div>
     </form>

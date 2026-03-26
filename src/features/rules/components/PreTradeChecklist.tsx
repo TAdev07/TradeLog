@@ -24,7 +24,7 @@ export function PreTradeChecklist({ onComplete }: PreTradeChecklistProps) {
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-muted-foreground">
-            Chua co quy tac nao. Hay vao trang Ky luat de them quy tac truoc.
+            Chưa có quy tắc nào. Hãy vào trang Kỷ luật để thêm quy tắc trước.
           </p>
         </CardContent>
       </Card>
@@ -36,7 +36,7 @@ export function PreTradeChecklist({ onComplete }: PreTradeChecklistProps) {
       <CardHeader>
         <CardTitle className="text-lg">Pre-Trade Checklist</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Tick tat ca cac quy tac truoc khi mo lenh giao dich
+          Tick tất cả các quy tắc trước khi mở lệnh giao dịch
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -73,7 +73,7 @@ export function PreTradeChecklist({ onComplete }: PreTradeChecklistProps) {
           disabled={!allChecked}
           onClick={onComplete}
         >
-          {allChecked ? 'Mo form nhap lenh' : `Con ${activeRules.length - Object.values(checklistItems).filter(Boolean).length} quy tac chua tick`}
+          {allChecked ? 'Mở form nhập lệnh' : `Còn ${activeRules.length - Object.values(checklistItems).filter(Boolean).length} quy tắc chưa tick`}
         </Button>
       </CardContent>
     </Card>

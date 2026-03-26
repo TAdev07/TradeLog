@@ -15,9 +15,9 @@ import { Separator } from '@/components/ui/separator'
 
 const navItems = [
   { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/trades', label: 'Giao dich', icon: LineChart },
-  { to: '/journal', label: 'Nhat ky', icon: BookOpen },
-  { to: '/rules', label: 'Ky luat', icon: Shield },
+  { to: '/trades', label: 'Giao dịch', icon: LineChart },
+  { to: '/journal', label: 'Nhật ký', icon: BookOpen },
+  { to: '/rules', label: 'Kỷ luật', icon: Shield },
 ]
 
 export function Sidebar() {

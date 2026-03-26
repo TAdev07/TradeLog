@@ -36,10 +36,10 @@ export function RuleForm({ rule, onSubmit, onCancel, isLoading }: RuleFormProps)
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="title">Tieu de quy tac</Label>
+        <Label htmlFor="title">Tiêu đề quy tắc</Label>
         <Input
           id="title"
-          placeholder="VD: Khong giao dich khi chua co ke hoach"
+          placeholder="VD: Không giao dịch khi chưa có kế hoạch"
           {...register('title')}
         />
         {errors.title && (
@@ -48,10 +48,10 @@ export function RuleForm({ rule, onSubmit, onCancel, isLoading }: RuleFormProps)
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Mo ta chi tiet</Label>
+        <Label htmlFor="description">Mô tả chi tiết</Label>
         <Textarea
           id="description"
-          placeholder="Mo ta chi tiet ve quy tac nay..."
+          placeholder="Mô tả chi tiết về quy tắc này..."
           rows={3}
           {...register('description')}
         />
@@ -64,16 +64,16 @@ export function RuleForm({ rule, onSubmit, onCancel, isLoading }: RuleFormProps)
           onCheckedChange={(checked) => setValue('is_active', checked === true)}
         />
         <Label htmlFor="is_active" className="cursor-pointer">
-          Kich hoat quy tac
+          Kích hoạt quy tắc
         </Label>
       </div>
 
       <div className="flex justify-end gap-2">
         <Button type="button" variant="outline" onClick={onCancel}>
-          Huy
+          Huỷ
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Dang luu...' : rule ? 'Cap nhat' : 'Them moi'}
+          {isLoading ? 'Đang lưu...' : rule ? 'Cập nhật' : 'Thêm mới'}
         </Button>
       </div>
     </form>

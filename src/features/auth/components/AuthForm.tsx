@@ -8,8 +8,8 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 const authSchema = z.object({
-  email: z.string().email('Email khong hop le'),
-  password: z.string().min(6, 'Mat khau toi thieu 6 ky tu'),
+  email: z.string().email('Email không hợp lệ'),
+  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự'),
 })
 
 type AuthFormData = z.infer<typeof authSchema>
@@ -36,7 +36,7 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
       setError(null)
       await onSubmit(data.email, data.password)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Da co loi xay ra')
+      setError(err instanceof Error ? err.message : 'Đã có lỗi xảy ra')
     }
   }
 
@@ -49,12 +49,12 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
           </div>
         </div>
         <CardTitle className="text-2xl">
-          {mode === 'login' ? 'Dang nhap' : 'Dang ky'}
+          {mode === 'login' ? 'Đăng nhập' : 'Đăng ký'}
         </CardTitle>
         <CardDescription>
           {mode === 'login'
-            ? 'Dang nhap vao TradeLog de bat dau ghi nhat ky giao dich'
-            : 'Tao tai khoan moi de bat dau su dung TradeLog'}
+            ? 'Đăng nhập vào TradeLog để bắt đầu ghi nhật ký giao dịch'
+            : 'Tạo tài khoản mới để bắt đầu sử dụng TradeLog'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -73,7 +73,7 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mat khau</Label>
+            <Label htmlFor="password">Mật khẩu</Label>
             <Input
               id="password"
               type="password"
@@ -93,33 +93,33 @@ export function AuthForm({ mode, onSubmit, onToggleMode }: AuthFormProps) {
 
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting
-              ? 'Dang xu ly...'
+              ? 'Đang xử lý...'
               : mode === 'login'
-                ? 'Dang nhap'
-                : 'Dang ky'}
+                ? 'Đăng nhập'
+                : 'Đăng ký'}
           </Button>
 
           <div className="text-center text-sm">
             {mode === 'login' ? (
               <p>
-                Chua co tai khoan?{' '}
+                Chưa có tài khoản?{' '}
                 <button
                   type="button"
                   onClick={onToggleMode}
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Dang ky
+                  Đăng ký
                 </button>
               </p>
             ) : (
               <p>
-                Da co tai khoan?{' '}
+                Đã có tài khoản?{' '}
                 <button
                   type="button"
                   onClick={onToggleMode}
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Dang nhap
+                  Đăng nhập
                 </button>
               </p>
             )}

@@ -16,26 +16,26 @@ export function TradesPage() {
     <div className="max-w-3xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Nhat ky lenh</h1>
+          <h1 className="text-2xl font-bold">Nhật ký lệnh</h1>
           <p className="text-sm text-muted-foreground">
-            Ghi chep va theo doi tat ca giao dich cua ban
+            Ghi chép và theo dõi tất cả giao dịch của bạn
           </p>
         </div>
         <Button onClick={() => navigate('/trades/new')}>
           <Plus className="h-4 w-4 mr-2" />
-          Them lenh
+          Thêm lệnh
         </Button>
       </div>
 
       {!trades || trades.length === 0 ? (
         <EmptyState
           icon={LineChart}
-          title="Chua co lenh nao"
-          description="Bat dau ghi lai cac giao dich cua ban de theo doi hieu suat."
+          title="Chưa có lệnh nào"
+          description="Bắt đầu ghi lại các giao dịch của bạn để theo dõi hiệu suất."
           action={
             <Button onClick={() => navigate('/trades/new')}>
               <Plus className="h-4 w-4 mr-2" />
-              Them lenh dau tien
+              Thêm lệnh đầu tiên
             </Button>
           }
         />

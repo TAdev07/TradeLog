@@ -72,7 +72,7 @@ export function TradeCard({ trade, onClick }: TradeCardProps) {
             </p>
           )}
           {trade.status === 'open' && (
-            <p className="text-sm text-muted-foreground">Dang mo</p>
+            <p className="text-sm text-muted-foreground">Đang mở</p>
           )}
         </div>
       </CardContent>
