@@ -18,15 +18,22 @@ export function NewTradePage() {
   const resetChecklist = useAppStore((s) => s.resetChecklist)
 
   const handleSubmit = async (data: TradeEntryFormData) => {
-    // Upload all screenshots to server on save
+    // Upload original blobs (no baked markers)
     let screenshotUrls: string[] = []
     if (screenshots.length > 0) {
       screenshotUrls = await uploadMultiple(screenshots.map((s) => s.blob))
     }
 
+    // Save annotation data separately
+    const screenshotAnnotations = screenshots.map((s) => ({
+      markers: s.markers,
+      lines: s.lines,
+    }))
+
     await createTrade.mutateAsync({
       ...data,
       screenshot_urls: screenshotUrls,
+      screenshot_annotations: screenshotAnnotations,
     })
     resetChecklist()
     navigate('/trades')

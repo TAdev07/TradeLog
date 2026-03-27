@@ -49,6 +49,7 @@ export interface Trade {
   emotion_notes: string | null
   error_tags: string[]
   screenshot_urls: string[]
+  screenshot_annotations: import('@/features/trades/types/annotation').ScreenshotAnnotation[]
   checklist_completed: boolean
   opened_at: string
   closed_at: string | null

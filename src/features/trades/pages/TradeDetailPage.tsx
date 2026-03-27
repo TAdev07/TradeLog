@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil, ZoomIn, Maximize } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil, Maximize } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,11 +12,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { TradeCloseForm } from '../components/TradeCloseForm'
+import { ChartOverlay } from '../components/ChartOverlay'
+import { ScreenshotUpload, type LocalScreenshot } from '../components/ScreenshotUpload'
 import { useTrade, useCloseTrade, useUpdateClosedTrade, useDeleteTrade } from '../hooks/useTrades'
+import { useScreenshot } from '../hooks/useScreenshot'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { cn, formatCurrency, formatPips, getPnlColor } from '@/lib/utils'
 import { STATUS_LABELS, ERROR_TAGS } from '@/lib/constants'
 import type { TradeCloseFormData } from '../schemas/trade.schema'
+import type { ScreenshotAnnotation } from '../types/annotation'
 
 export function TradeDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -25,21 +29,75 @@ export function TradeDetailPage() {
   const closeTrade = useCloseTrade()
   const updateClosedTrade = useUpdateClosedTrade()
   const deleteTrade = useDeleteTrade()
+  const { uploadMultiple, uploading } = useScreenshot()
   const [closeDialogOpen, setCloseDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null)
+
+  // Screenshot editing state for edit dialog
+  const [editScreenshots, setEditScreenshots] = useState<LocalScreenshot[] | null>(null)
 
   if (isLoading || !trade) return <LoadingSpinner className="mt-20" />
+
+  const annotations: ScreenshotAnnotation[] = trade.screenshot_annotations ?? []
 
   const handleClose = async (data: TradeCloseFormData) => {
     await closeTrade.mutateAsync({ id: trade.id, data, trade })
     setCloseDialogOpen(false)
   }
 
+  const handleOpenEdit = () => {
+    // Initialize edit screenshots from existing trade data
+    const existing: LocalScreenshot[] = trade.screenshot_urls.map((url, i) => ({
+      id: crypto.randomUUID(),
+      previewUrl: url,
+      blob: new Blob(), // existing images don't need re-upload unless changed
+      markers: annotations[i]?.markers ?? [],
+      lines: annotations[i]?.lines ?? [],
+    }))
+    setEditScreenshots(existing)
+    setEditDialogOpen(true)
+  }
+
   const handleEdit = async (data: TradeCloseFormData) => {
-    await updateClosedTrade.mutateAsync({ id: trade.id, data, trade })
+    const currentScreenshots = editScreenshots ?? []
+
+    // Determine which screenshots need uploading (new ones have blob size > 0)
+    const screenshotUrls: string[] = []
+    const screenshotAnnotations: ScreenshotAnnotation[] = []
+    const newBlobs: { index: number; blob: Blob }[] = []
+
+    for (let i = 0; i < currentScreenshots.length; i++) {
+      const s = currentScreenshots[i]
+      if (s.blob.size > 0) {
+        // New screenshot, needs upload
+        newBlobs.push({ index: i, blob: s.blob })
+        screenshotUrls.push('') // placeholder
+      } else {
+        // Existing screenshot, keep URL
+        screenshotUrls.push(s.previewUrl)
+      }
+      screenshotAnnotations.push({ markers: s.markers, lines: s.lines })
+    }
+
+    // Upload new blobs
+    if (newBlobs.length > 0) {
+      const urls = await uploadMultiple(newBlobs.map(b => b.blob))
+      newBlobs.forEach((b, j) => {
+        screenshotUrls[b.index] = urls[j]
+      })
+    }
+
+    await updateClosedTrade.mutateAsync({
+      id: trade.id,
+      data,
+      trade,
+      screenshot_urls: screenshotUrls,
+      screenshot_annotations: screenshotAnnotations,
+    })
     setEditDialogOpen(false)
+    setEditScreenshots(null)
   }
 
   const handleDelete = async () => {
@@ -47,6 +105,69 @@ export function TradeDetailPage() {
     setDeleteDialogOpen(false)
     navigate('/trades')
   }
+
+  const openFullscreen = (index: number) => {
+    const url = trade.screenshot_urls[index]
+    const ann = annotations[index] ?? { markers: [], lines: [] }
+    const win = window.open('', '_blank')
+    if (!win) return
+
+    const markersJson = JSON.stringify(ann.markers)
+    const linesJson = JSON.stringify(ann.lines)
+
+    win.document.write(`<!DOCTYPE html><html><head><title>Preview</title>
+<style>
+  *{margin:0;padding:0;background:#000}
+  .container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+  img{max-width:100vw;max-height:100vh;object-fit:contain}
+</style></head><body>
+<div class="container" id="c">
+  <img id="img" src="${url}" />
+</div>
+<script>
+  const img = document.getElementById('img');
+  const markers = ${markersJson};
+  const lines = ${linesJson};
+  img.onload = function() {
+    const w = img.clientWidth, h = img.clientHeight;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    const rect = img.getBoundingClientRect();
+    svg.style.cssText = 'position:absolute;width:'+w+'px;height:'+h+'px;left:'+rect.left+'px;top:'+rect.top+'px;pointer-events:none';
+    lines.forEach(function(line) {
+      if (line.points.length < 2) return;
+      const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      pl.setAttribute('points', line.points.map(function(p){return (p.x*w)+','+(p.y*h)}).join(' '));
+      pl.setAttribute('fill', 'none');
+      pl.setAttribute('stroke', line.color);
+      pl.setAttribute('stroke-width', Math.max(1, 2*line.width));
+      pl.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(pl);
+    });
+    markers.forEach(function(m) {
+      var isBuy = m.type === 'buy';
+      var color = isBuy ? '#4ade80' : '#f87171';
+      var cx = m.x * w, cy = m.y * h;
+      var s = Math.max(16, w * 0.03) * m.size;
+      var pts = isBuy
+        ? [[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]
+        : [[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
+      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      poly.setAttribute('points', pts.map(function(d){return (cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
+      poly.setAttribute('fill', color);
+      poly.setAttribute('stroke', color);
+      poly.setAttribute('stroke-width', '2');
+      svg.appendChild(poly);
+    });
+    document.getElementById('c').appendChild(svg);
+  };
+</script></body></html>`)
+    win.document.close()
+  }
+
+  const previewAnnotation = previewIndex !== null
+    ? annotations[previewIndex] ?? { markers: [], lines: [] }
+    : { markers: [], lines: [] }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -172,7 +293,7 @@ export function TradeDetailPage() {
           </Card>
         )}
 
-        {/* Screenshots */}
+        {/* Screenshots with overlay */}
         {trade.screenshot_urls.length > 0 && (
           <Card>
             <CardHeader>
@@ -180,18 +301,21 @@ export function TradeDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
-                {trade.screenshot_urls.map((url, i) => (
-                  <div key={i} className="relative group cursor-pointer" onClick={() => setPreviewUrl(url)}>
-                    <img
-                      src={url}
-                      alt={`Chart ${i + 1}`}
-                      className="rounded-lg border w-full"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-lg">
-                      <ZoomIn className="h-6 w-6 text-white drop-shadow" />
+                {trade.screenshot_urls.map((url, i) => {
+                  const ann = annotations[i] ?? { markers: [], lines: [] }
+                  return (
+                    <div key={i} className="relative group cursor-pointer" onClick={() => setPreviewIndex(i)}>
+                      <ChartOverlay
+                        imageSrc={url}
+                        annotations={ann}
+                        className="w-full"
+                      />
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-lg">
+                        <Maximize className="h-6 w-6 text-white drop-shadow" />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             </CardContent>
           </Card>
@@ -205,7 +329,7 @@ export function TradeDetailPage() {
             </Button>
           )}
           {trade.status !== 'open' && (
-            <Button variant="outline" className="flex-1" onClick={() => setEditDialogOpen(true)}>
+            <Button variant="outline" className="flex-1" onClick={handleOpenEdit}>
               <Pencil className="h-4 w-4 mr-2" />
               Chỉnh sửa
             </Button>
@@ -237,16 +361,31 @@ export function TradeDetailPage() {
       </Dialog>
 
       {/* Edit closed trade dialog */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <Dialog open={editDialogOpen} onOpenChange={(open) => {
+        setEditDialogOpen(open)
+        if (!open) setEditScreenshots(null)
+      }}>
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa lệnh {trade.pair}</DialogTitle>
           </DialogHeader>
+
+          {/* Screenshot editing */}
+          {editScreenshots !== null && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Ảnh biểu đồ</p>
+              <ScreenshotUpload
+                screenshots={editScreenshots}
+                onChange={setEditScreenshots}
+              />
+            </div>
+          )}
+
           <TradeCloseForm
             trade={trade}
             onSubmit={handleEdit}
-            onCancel={() => setEditDialogOpen(false)}
-            isLoading={updateClosedTrade.isPending}
+            onCancel={() => { setEditDialogOpen(false); setEditScreenshots(null) }}
+            isLoading={updateClosedTrade.isPending || uploading}
             isEditing
           />
         </DialogContent>
@@ -272,26 +411,20 @@ export function TradeDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Screenshot preview dialog */}
-      <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
+      {/* Screenshot preview dialog with overlay */}
+      <Dialog open={previewIndex !== null} onOpenChange={() => setPreviewIndex(null)}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-2 sm:p-4">
-          {previewUrl && (
+          {previewIndex !== null && (
             <div className="relative">
-              <img
-                src={previewUrl}
-                alt="Preview"
-                className="w-full rounded-lg"
+              <ChartOverlay
+                imageSrc={trade.screenshot_urls[previewIndex]}
+                annotations={previewAnnotation}
               />
               <Button
                 size="icon"
                 variant="secondary"
                 className="absolute top-2 right-2 h-8 w-8 bg-black/50 hover:bg-black/70 text-white border-0"
-                onClick={() => {
-                  const win = window.open('', '_blank')
-                  if (!win) return
-                  win.document.write(`<!DOCTYPE html><html><head><title>Preview</title><style>*{margin:0;padding:0;background:#000}img{width:100vw;height:100vh;object-fit:contain}</style></head><body><img src="${previewUrl}" /></body></html>`)
-                  win.document.close()
-                }}
+                onClick={() => openFullscreen(previewIndex)}
               >
                 <Maximize className="h-4 w-4" />
               </Button>
