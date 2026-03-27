@@ -10,9 +10,9 @@ export function PeriodFilter() {
       onValueChange={(v) => setDashboardPeriod(v as 'week' | 'month' | 'all')}
     >
       <TabsList>
-        <TabsTrigger value="week">Tuan nay</TabsTrigger>
-        <TabsTrigger value="month">Thang nay</TabsTrigger>
-        <TabsTrigger value="all">Tat ca</TabsTrigger>
+        <TabsTrigger value="week">Tuần này</TabsTrigger>
+        <TabsTrigger value="month">Tháng này</TabsTrigger>
+        <TabsTrigger value="all">Tất cả</TabsTrigger>
       </TabsList>
     </Tabs>
   )

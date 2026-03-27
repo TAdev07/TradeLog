@@ -26,7 +26,7 @@ export function PnLChart({ data }: PnLChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Bieu do Loi nhuan / Thua lo</CardTitle>
+        <CardTitle>Biểu đồ Lợi nhuận / Thua lỗ</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="dollars">
@@ -52,7 +52,7 @@ export function PnLChart({ data }: PnLChartProps) {
                 <Line
                   type="monotone"
                   dataKey="cumulativePnlDollars"
-                  name="Cumulative PnL ($)"
+                  name="Tích luỹ PnL ($)"
                   stroke="var(--profit)"
                   strokeWidth={2}
                   dot={{ r: 3 }}
@@ -87,7 +87,7 @@ export function PnLChart({ data }: PnLChartProps) {
                 <Line
                   type="monotone"
                   dataKey="cumulativePnlPips"
-                  name="Cumulative Pips"
+                  name="Tích luỹ Pips"
                   stroke="var(--profit)"
                   strokeWidth={2}
                   dot={{ r: 3 }}
