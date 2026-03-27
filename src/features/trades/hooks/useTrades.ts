@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase'
 import { calculateRiskReward } from '@/lib/utils'
 import type { Trade } from '@/types/database'
 import type { TradeEntryFormData, TradeCloseFormData } from '../schemas/trade.schema'
+import type { ScreenshotAnnotation } from '../types/annotation'
 
 const TRADES_KEY = ['trades']
 
@@ -44,7 +45,7 @@ export function useCreateTrade() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: TradeEntryFormData & { screenshot_urls?: string[] }) => {
+    mutationFn: async (data: TradeEntryFormData & { screenshot_urls?: string[]; screenshot_annotations?: ScreenshotAnnotation[] }) => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
@@ -60,6 +61,7 @@ export function useCreateTrade() {
           take_profit: data.take_profit ?? null,
           status: 'open',
           screenshot_urls: data.screenshot_urls ?? [],
+          screenshot_annotations: data.screenshot_annotations ?? [],
           error_tags: [],
           checklist_completed: true,
           journal_id: null,
@@ -130,22 +132,37 @@ export function useUpdateClosedTrade() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ id, data, trade: sourceTrade }: { id: string; data: TradeCloseFormData; trade: Trade }) => {
+    mutationFn: async ({ id, data, trade: sourceTrade, screenshot_urls, screenshot_annotations }: {
+      id: string
+      data: TradeCloseFormData
+      trade: Trade
+      screenshot_urls?: string[]
+      screenshot_annotations?: ScreenshotAnnotation[]
+    }) => {
       const rr = calculateRiskReward(sourceTrade.entry_price, data.close_price, sourceTrade.stop_loss, sourceTrade.direction)
+
+      const updatePayload: Record<string, unknown> = {
+        status: data.status,
+        close_price: data.close_price,
+        pnl_dollars: data.pnl_dollars,
+        pnl_pips: data.pnl_pips,
+        emotion_notes: data.emotion_notes ?? null,
+        error_tags: data.error_tags,
+        risk_reward_ratio: rr,
+        closed_at: data.closed_at,
+        updated_at: new Date().toISOString(),
+      }
+
+      if (screenshot_urls !== undefined) {
+        updatePayload.screenshot_urls = screenshot_urls
+      }
+      if (screenshot_annotations !== undefined) {
+        updatePayload.screenshot_annotations = screenshot_annotations
+      }
 
       const { data: updatedTrade, error } = await supabase
         .from('trades')
-        .update({
-          status: data.status,
-          close_price: data.close_price,
-          pnl_dollars: data.pnl_dollars,
-          pnl_pips: data.pnl_pips,
-          emotion_notes: data.emotion_notes ?? null,
-          error_tags: data.error_tags,
-          risk_reward_ratio: rr,
-          closed_at: data.closed_at,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq('id', id)
         .select()
         .single()

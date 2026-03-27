@@ -7,19 +7,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ChartAnnotator, type Marker } from './ChartAnnotator'
+import { ChartAnnotator } from './ChartAnnotator'
+import { ChartOverlay } from './ChartOverlay'
 import { resizeImage } from '@/lib/image-utils'
+import type { Marker, Line, ScreenshotAnnotation } from '../types/annotation'
 
 export interface LocalScreenshot {
   id: string
-  /** Data URL or blob URL for local preview */
+  /** Data URL for local preview (original image, no baked markers) */
   previewUrl: string
-  /** The resized Blob ready for upload */
+  /** The resized Blob ready for upload (original, no baked markers) */
   blob: Blob
-  /** Annotation markers (retained for re-editing) */
+  /** Annotation markers */
   markers: Marker[]
-  /** Original image data URL (before markers baked in) */
-  originalDataUrl: string
+  /** Annotation lines */
+  lines: Line[]
 }
 
 interface ScreenshotUploadProps {
@@ -50,7 +52,7 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
           previewUrl: dataUrl,
           blob: resizedBlob,
           markers: [],
-          originalDataUrl: dataUrl,
+          lines: [],
         })
       }
 
@@ -67,14 +69,12 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
     onChange(screenshots.filter((_, i) => i !== index))
   }
 
-  const handleAnnotationSave = (index: number, dataUrl: string, markers: Marker[]) => {
+  const handleAnnotationSave = (index: number, annotations: ScreenshotAnnotation) => {
     const updated = [...screenshots]
-    const blob = dataUrlToBlob(dataUrl)
     updated[index] = {
       ...updated[index],
-      previewUrl: dataUrl,
-      blob,
-      markers,
+      markers: annotations.markers,
+      lines: annotations.lines,
     }
     onChange(updated)
     setEditingIndex(null)
@@ -83,15 +83,70 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
   const editingScreenshot = editingIndex !== null ? screenshots[editingIndex] : null
   const previewScreenshot = previewIndex !== null ? screenshots[previewIndex] : null
 
-  const openFullscreen = (src: string) => {
+  const openFullscreen = (screenshot: LocalScreenshot) => {
+    // Open fullscreen with overlay - create a simple HTML page with the image and SVG overlay
     const win = window.open('', '_blank')
     if (!win) return
-    win.document.write(`<!DOCTYPE html><html><head><title>Preview</title><style>
-      *{margin:0;padding:0;background:#000}
-      img{width:100vw;height:100vh;object-fit:contain}
-    </style></head><body><img src="${src}" /></body></html>`)
+
+    const markersJson = JSON.stringify(screenshot.markers)
+    const linesJson = JSON.stringify(screenshot.lines)
+
+    win.document.write(`<!DOCTYPE html><html><head><title>Preview</title>
+<style>
+  *{margin:0;padding:0;background:#000}
+  .container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
+  img{max-width:100vw;max-height:100vh;object-fit:contain}
+  svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+</style></head><body>
+<div class="container" id="c">
+  <img id="img" src="${screenshot.previewUrl}" />
+</div>
+<script>
+  const img = document.getElementById('img');
+  const markers = ${markersJson};
+  const lines = ${linesJson};
+  img.onload = function() {
+    const w = img.clientWidth, h = img.clientHeight;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+    svg.style.cssText = 'position:absolute;width:'+w+'px;height:'+h+'px;pointer-events:none';
+    const container = document.getElementById('c');
+    // Center SVG over image
+    const rect = img.getBoundingClientRect();
+    svg.style.left = rect.left + 'px';
+    svg.style.top = rect.top + 'px';
+    lines.forEach(function(line) {
+      if (line.points.length < 2) return;
+      const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+      pl.setAttribute('points', line.points.map(function(p){return (p.x*w)+','+(p.y*h)}).join(' '));
+      pl.setAttribute('fill', 'none');
+      pl.setAttribute('stroke', line.color);
+      pl.setAttribute('stroke-width', Math.max(1, 2*line.width));
+      pl.setAttribute('stroke-linecap', 'round');
+      svg.appendChild(pl);
+    });
+    markers.forEach(function(m) {
+      var isBuy = m.type === 'buy';
+      var color = isBuy ? '#4ade80' : '#f87171';
+      var cx = m.x * w, cy = m.y * h;
+      var s = Math.max(16, w * 0.03) * m.size;
+      var pts = isBuy
+        ? [[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]
+        : [[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
+      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      poly.setAttribute('points', pts.map(function(d){return (cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
+      poly.setAttribute('fill', color);
+      poly.setAttribute('stroke', color);
+      poly.setAttribute('stroke-width', '2');
+      svg.appendChild(poly);
+    });
+    container.appendChild(svg);
+  };
+</script></body></html>`)
     win.document.close()
   }
+
+  const annotationCount = (s: LocalScreenshot) => s.markers.length + s.lines.length
 
   return (
     <div className="space-y-3">
@@ -123,10 +178,10 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
                 <Pencil className="h-3.5 w-3.5 text-white" />
               </button>
             </div>
-            {/* Marker count badge */}
-            {screenshot.markers.length > 0 && (
+            {/* Annotation count badge */}
+            {annotationCount(screenshot) > 0 && (
               <div className="absolute bottom-1 left-1 bg-primary text-primary-foreground text-[10px] px-1.5 py-0.5 rounded-full font-medium">
-                {screenshot.markers.length}
+                {annotationCount(screenshot)}
               </div>
             )}
             <button
@@ -169,42 +224,39 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
           </DialogHeader>
           {editingScreenshot && editingIndex !== null && (
             <ChartAnnotator
-              imageSrc={editingScreenshot.originalDataUrl}
-              markers={editingScreenshot.markers}
-              onChange={(markers) => {
+              imageSrc={editingScreenshot.previewUrl}
+              annotations={{ markers: editingScreenshot.markers, lines: editingScreenshot.lines }}
+              onChange={(annotations) => {
                 const updated = [...screenshots]
-                updated[editingIndex] = { ...updated[editingIndex], markers }
+                updated[editingIndex] = {
+                  ...updated[editingIndex],
+                  markers: annotations.markers,
+                  lines: annotations.lines,
+                }
                 onChange(updated)
               }}
               onClose={() => setEditingIndex(null)}
-              onSave={(dataUrl) =>
-                handleAnnotationSave(
-                  editingIndex,
-                  dataUrl,
-                  screenshots[editingIndex].markers
-                )
-              }
+              onSave={(annotations) => handleAnnotationSave(editingIndex, annotations)}
             />
           )}
         </DialogContent>
       </Dialog>
 
-      {/* Preview dialog */}
+      {/* Preview dialog with overlay */}
       <Dialog open={previewIndex !== null} onOpenChange={() => setPreviewIndex(null)}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-2 sm:p-4">
           {previewScreenshot && (
             <div className="relative">
-              <img
-                src={previewScreenshot.previewUrl}
-                alt="Preview"
-                className="w-full rounded-lg"
+              <ChartOverlay
+                imageSrc={previewScreenshot.previewUrl}
+                annotations={{ markers: previewScreenshot.markers, lines: previewScreenshot.lines }}
               />
               <Button
                 type="button"
                 size="icon"
                 variant="secondary"
                 className="absolute top-2 right-2 h-8 w-8 bg-black/50 hover:bg-black/70 text-white border-0"
-                onClick={() => openFullscreen(previewScreenshot.previewUrl)}
+                onClick={() => openFullscreen(previewScreenshot)}
               >
                 <Maximize className="h-4 w-4" />
               </Button>
@@ -224,15 +276,4 @@ function blobToDataUrl(blob: Blob): Promise<string> {
     reader.onerror = reject
     reader.readAsDataURL(blob)
   })
-}
-
-function dataUrlToBlob(dataUrl: string): Blob {
-  const parts = dataUrl.split(',')
-  const mime = parts[0].match(/:(.*?);/)![1]
-  const bytes = atob(parts[1])
-  const arr = new Uint8Array(bytes.length)
-  for (let i = 0; i < bytes.length; i++) {
-    arr[i] = bytes.charCodeAt(i)
-  }
-  return new Blob([arr], { type: mime })
 }
