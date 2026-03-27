@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil, ZoomIn } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil, ZoomIn, Maximize } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -276,11 +276,26 @@ export function TradeDetailPage() {
       <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-2 sm:p-4">
           {previewUrl && (
-            <img
-              src={previewUrl}
-              alt="Preview"
-              className="w-full rounded-lg"
-            />
+            <div className="relative">
+              <img
+                src={previewUrl}
+                alt="Preview"
+                className="w-full rounded-lg"
+              />
+              <Button
+                size="icon"
+                variant="secondary"
+                className="absolute top-2 right-2 h-8 w-8 bg-black/50 hover:bg-black/70 text-white border-0"
+                onClick={() => {
+                  const win = window.open('', '_blank')
+                  if (!win) return
+                  win.document.write(`<!DOCTYPE html><html><head><title>Preview</title><style>*{margin:0;padding:0;background:#000}img{width:100vw;height:100vh;object-fit:contain}</style></head><body><img src="${previewUrl}" /></body></html>`)
+                  win.document.close()
+                }}
+              >
+                <Maximize className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </DialogContent>
       </Dialog>
