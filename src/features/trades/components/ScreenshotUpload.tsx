@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { ImagePlus, X, Pencil, ZoomIn } from 'lucide-react'
+import { ImagePlus, X, Pencil, ZoomIn, Maximize } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -81,6 +82,16 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
 
   const editingScreenshot = editingIndex !== null ? screenshots[editingIndex] : null
   const previewScreenshot = previewIndex !== null ? screenshots[previewIndex] : null
+
+  const openFullscreen = (src: string) => {
+    const win = window.open('', '_blank')
+    if (!win) return
+    win.document.write(`<!DOCTYPE html><html><head><title>Preview</title><style>
+      *{margin:0;padding:0;background:#000}
+      img{width:100vw;height:100vh;object-fit:contain}
+    </style></head><body><img src="${src}" /></body></html>`)
+    win.document.close()
+  }
 
   return (
     <div className="space-y-3">
@@ -182,11 +193,22 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
       <Dialog open={previewIndex !== null} onOpenChange={() => setPreviewIndex(null)}>
         <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-2 sm:p-4">
           {previewScreenshot && (
-            <img
-              src={previewScreenshot.previewUrl}
-              alt="Preview"
-              className="w-full rounded-lg"
-            />
+            <div className="relative">
+              <img
+                src={previewScreenshot.previewUrl}
+                alt="Preview"
+                className="w-full rounded-lg"
+              />
+              <Button
+                type="button"
+                size="icon"
+                variant="secondary"
+                className="absolute top-2 right-2 h-8 w-8 bg-black/50 hover:bg-black/70 text-white border-0"
+                onClick={() => openFullscreen(previewScreenshot.previewUrl)}
+              >
+                <Maximize className="h-4 w-4" />
+              </Button>
+            </div>
           )}
         </DialogContent>
       </Dialog>
