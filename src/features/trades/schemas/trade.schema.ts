@@ -1,12 +1,21 @@
 import { z } from 'zod'
 
+const optionalPositiveNumber = z
+  .union([z.string(), z.number()])
+  .transform((val) => {
+    if (val === '' || val === undefined || val === null) return undefined
+    const num = Number(val)
+    return isNaN(num) ? undefined : num
+  })
+  .pipe(z.number().positive('Giá trị phải lớn hơn 0').optional())
+
 export const tradeEntrySchema = z.object({
   pair: z.string().min(1, 'Chọn cặp tiền'),
   direction: z.enum(['long', 'short'], { message: 'Chọn vị thế' }),
   lot_size: z.coerce.number().positive('Lot size phải lớn hơn 0'),
   entry_price: z.coerce.number().positive('Giá vào lệnh phải lớn hơn 0'),
-  stop_loss: z.coerce.number().positive('Stoploss phải lớn hơn 0').optional(),
-  take_profit: z.coerce.number().positive('Take profit phải lớn hơn 0').optional(),
+  stop_loss: optionalPositiveNumber,
+  take_profit: optionalPositiveNumber,
 })
 
 export const tradeCloseSchema = z.object({

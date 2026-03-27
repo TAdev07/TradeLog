@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { tradeCloseSchema, type TradeCloseFormData } from '../schemas/trade.schema'
@@ -27,12 +28,15 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
     resolver: zodResolver(tradeCloseSchema) as never,
     defaultValues: {
       error_tags: [],
+      pnl_pips: 0,
+      pnl_dollars: 0,
     },
   })
 
   const status = watch('status')
   const errorTags = watch('error_tags')
   const closePrice = watch('close_price')
+  const prevClosePrice = useRef<number | undefined>(undefined)
 
   // Auto-calculate pips when close price changes
   const directedPips = closePrice
@@ -45,6 +49,16 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
   const autoRR = closePrice
     ? calculateRiskReward(trade.entry_price, closePrice, trade.stop_loss, trade.direction)
     : null
+
+  // Auto-fill pips field when close price changes
+  useEffect(() => {
+    if (closePrice && closePrice > 0 && closePrice !== prevClosePrice.current) {
+      prevClosePrice.current = closePrice
+      if (directedPips !== null) {
+        setValue('pnl_pips', directedPips)
+      }
+    }
+  }, [closePrice, directedPips, setValue])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -103,7 +117,14 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
 
         {/* PnL Pips */}
         <div className="space-y-2">
-          <Label htmlFor="pnl_pips">Pips</Label>
+          <Label htmlFor="pnl_pips">
+            Pips
+            {directedPips !== null && (
+              <span className={cn('ml-1 text-xs', getPnlColor(directedPips))}>
+                (tự tính)
+              </span>
+            )}
+          </Label>
           <Input
             id="pnl_pips"
             type="number"
