@@ -68,7 +68,7 @@ export function useCreateTrade() {
           pnl_pips: null,
           risk_reward_ratio: null,
           emotion_notes: null,
-          opened_at: new Date().toISOString(),
+          opened_at: data.opened_at ? new Date(data.opened_at).toISOString() : new Date().toISOString(),
           closed_at: null,
         })
         .select()
@@ -106,7 +106,7 @@ export function useCloseTrade() {
           emotion_notes: data.emotion_notes ?? null,
           error_tags: data.error_tags,
           risk_reward_ratio: rr,
-          closed_at: new Date().toISOString(),
+          closed_at: data.closed_at ? new Date(data.closed_at).toISOString() : new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
         .eq('id', id)
@@ -122,6 +122,43 @@ export function useCloseTrade() {
     },
     onError: (error) => {
       toast.error('Lỗi khi đóng lệnh', { description: error.message })
+    },
+  })
+}
+
+export function useUpdateClosedTrade() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async ({ id, data, trade: sourceTrade }: { id: string; data: TradeCloseFormData; trade: Trade }) => {
+      const rr = calculateRiskReward(sourceTrade.entry_price, data.close_price, sourceTrade.stop_loss, sourceTrade.direction)
+
+      const { data: updatedTrade, error } = await supabase
+        .from('trades')
+        .update({
+          status: data.status,
+          close_price: data.close_price,
+          pnl_dollars: data.pnl_dollars,
+          pnl_pips: data.pnl_pips,
+          emotion_notes: data.emotion_notes ?? null,
+          error_tags: data.error_tags,
+          risk_reward_ratio: rr,
+          closed_at: data.closed_at,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .select()
+        .single()
+
+      if (error) throw error
+      return updatedTrade
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: TRADES_KEY })
+      toast.success('Cập nhật lệnh thành công')
+    },
+    onError: (error) => {
+      toast.error('Lỗi khi cập nhật lệnh', { description: error.message })
     },
   })
 }
