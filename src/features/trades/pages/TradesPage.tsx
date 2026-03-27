@@ -50,16 +50,16 @@ export function TradesPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Nhật ký lệnh</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Nhật ký lệnh</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             Ghi chép và theo dõi tất cả giao dịch của bạn
           </p>
         </div>
-        <Button onClick={() => navigate('/trades/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm lệnh
+        <Button size="sm" className="sm:size-default" onClick={() => navigate('/trades/new')}>
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Thêm lệnh</span>
         </Button>
       </div>
 

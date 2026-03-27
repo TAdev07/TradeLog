@@ -25,16 +25,16 @@ export function JournalPage() {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>
-          <h1 className="text-2xl font-bold">Nhật ký ngày</h1>
-          <p className="text-sm text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Nhật ký ngày</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">
             Ghi chép nhận định và tâm lý giao dịch hàng ngày
           </p>
         </div>
-        <Button onClick={() => navigate('/journal/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm nhật ký
+        <Button size="sm" className="sm:size-default" onClick={() => navigate('/journal/new')}>
+          <Plus className="h-4 w-4 sm:mr-2" />
+          <span className="hidden sm:inline">Thêm nhật ký</span>
         </Button>
       </div>
 

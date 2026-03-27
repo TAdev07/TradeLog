@@ -50,27 +50,27 @@ export function TradeDetailPage() {
   return (
     <div className="max-w-2xl mx-auto">
       {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/trades')}>
+      <div className="flex items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+        <Button variant="ghost" size="icon" className="shrink-0" onClick={() => navigate('/trades')}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3">
             <div
               className={cn(
-                'flex h-10 w-10 items-center justify-center rounded-full',
+                'flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full shrink-0',
                 trade.direction === 'long' ? 'bg-profit/10' : 'bg-loss/10'
               )}
             >
               {trade.direction === 'long' ? (
-                <ArrowUpRight className="h-5 w-5 text-profit" />
+                <ArrowUpRight className="h-4 w-4 sm:h-5 sm:w-5 text-profit" />
               ) : (
-                <ArrowDownRight className="h-5 w-5 text-loss" />
+                <ArrowDownRight className="h-4 w-4 sm:h-5 sm:w-5 text-loss" />
               )}
             </div>
-            <div>
-              <h1 className="text-2xl font-bold">{trade.pair}</h1>
-              <p className="text-sm text-muted-foreground">
+            <div className="min-w-0">
+              <h1 className="text-lg sm:text-2xl font-bold">{trade.pair}</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">
                 {trade.direction === 'long' ? 'Long' : 'Short'} · {trade.lot_size} lot · {format(new Date(trade.opened_at), 'dd/MM/yyyy HH:mm')}
               </p>
             </div>
@@ -83,7 +83,7 @@ export function TradeDetailPage() {
                 : trade.status === 'breakeven' ? 'breakeven'
                   : 'secondary'
           }
-          className="text-base px-3 py-1"
+          className="text-sm sm:text-base px-2 sm:px-3 py-1 shrink-0"
         >
           {STATUS_LABELS[trade.status] ?? trade.status}
         </Badge>
@@ -92,7 +92,7 @@ export function TradeDetailPage() {
       <div className="space-y-4">
         {/* Price info */}
         <Card>
-          <CardContent className="grid grid-cols-2 gap-4 p-6">
+          <CardContent className="grid grid-cols-2 gap-3 sm:gap-4 p-4 sm:p-6">
             <div>
               <p className="text-sm text-muted-foreground">Entry</p>
               <p className="font-mono font-semibold">{trade.entry_price}</p>
@@ -121,25 +121,25 @@ export function TradeDetailPage() {
         {/* PnL */}
         {trade.pnl_dollars !== null && (
           <Card>
-            <CardContent className="flex items-center justify-around p-6">
+            <CardContent className="flex items-center justify-around p-4 sm:p-6">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground">PnL</p>
-                <p className={cn('text-2xl font-bold', getPnlColor(trade.pnl_dollars!))}>
+                <p className="text-xs sm:text-sm text-muted-foreground">PnL</p>
+                <p className={cn('text-lg sm:text-2xl font-bold', getPnlColor(trade.pnl_dollars!))}>
                   {formatCurrency(trade.pnl_dollars!)}
                 </p>
               </div>
               {trade.pnl_pips !== null && (
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">Pips</p>
-                  <p className={cn('text-2xl font-bold', getPnlColor(trade.pnl_pips!))}>
+                  <p className="text-xs sm:text-sm text-muted-foreground">Pips</p>
+                  <p className={cn('text-lg sm:text-2xl font-bold', getPnlColor(trade.pnl_pips!))}>
                     {formatPips(trade.pnl_pips!)}
                   </p>
                 </div>
               )}
               {trade.risk_reward_ratio !== null && (
                 <div className="text-center">
-                  <p className="text-sm text-muted-foreground">R:R</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-xs sm:text-sm text-muted-foreground">R:R</p>
+                  <p className="text-lg sm:text-2xl font-bold">
                     {trade.risk_reward_ratio!.toFixed(2)}
                   </p>
                 </div>
@@ -218,7 +218,7 @@ export function TradeDetailPage() {
 
       {/* Close trade dialog */}
       <Dialog open={closeDialogOpen} onOpenChange={setCloseDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Đóng lệnh {trade.pair}</DialogTitle>
           </DialogHeader>
@@ -233,7 +233,7 @@ export function TradeDetailPage() {
 
       {/* Edit closed trade dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa lệnh {trade.pair}</DialogTitle>
           </DialogHeader>

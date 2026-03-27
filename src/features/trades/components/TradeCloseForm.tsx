@@ -116,7 +116,7 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading, isEditing
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         {/* Close Price */}
         <div className="space-y-2">
           <Label htmlFor="close_price">Giá đóng</Label>
@@ -172,7 +172,7 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading, isEditing
 
       {/* Auto-calculated preview */}
       {closePrice > 0 && (
-        <div className="flex gap-4 text-sm bg-muted/50 rounded-lg p-3">
+        <div className="flex flex-wrap gap-3 sm:gap-4 text-sm bg-muted/50 rounded-lg p-3">
           {directedPips !== null && (
             <div>
               <span className="text-muted-foreground">Pips ước tính: </span>

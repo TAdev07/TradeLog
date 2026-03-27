@@ -72,25 +72,25 @@ export function JournalEntryPage() {
             {dayTrades.map((trade) => (
               <div
                 key={trade.id}
-                className="flex items-center justify-between p-3 rounded-lg border hover:bg-accent/50 cursor-pointer transition-colors"
+                className="flex items-center justify-between gap-2 p-3 rounded-lg border hover:bg-accent/50 cursor-pointer transition-colors"
                 onClick={() => navigate(`/trades/${trade.id}`)}
               >
-                <div className="flex items-center gap-3">
-                  <span className="font-medium">{trade.pair}</span>
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                  <span className="font-medium text-sm sm:text-base">{trade.pair}</span>
                   <Badge variant={
                     trade.status === 'win' ? 'profit'
                       : trade.status === 'loss' ? 'loss'
                         : trade.status === 'breakeven' ? 'breakeven'
                           : 'secondary'
-                  }>
+                  } className="text-[10px] sm:text-xs">
                     {STATUS_LABELS[trade.status] ?? trade.status}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground hidden sm:inline">
                     {trade.direction === 'long' ? 'Long' : 'Short'} · {trade.lot_size} lot
                   </span>
                 </div>
                 {trade.pnl_dollars !== null && (
-                  <span className={cn('font-medium', getPnlColor(trade.pnl_dollars))}>
+                  <span className={cn('font-medium text-sm sm:text-base shrink-0', getPnlColor(trade.pnl_dollars))}>
                     {formatCurrency(trade.pnl_dollars)}
                   </span>
                 )}

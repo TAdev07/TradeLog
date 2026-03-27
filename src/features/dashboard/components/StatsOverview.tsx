@@ -9,10 +9,10 @@ interface StatsOverviewProps {
 
 export function StatsOverview({ stats }: StatsOverviewProps) {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
       {/* Tổng PnL */}
       <Card className="relative overflow-hidden">
-        <CardContent className="p-5">
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-muted-foreground">Tổng PnL</p>
             <div className={cn(
@@ -24,7 +24,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
                 : <TrendingDown className="h-4 w-4 text-loss" />}
             </div>
           </div>
-          <p className={cn('text-2xl font-bold', stats.totalPnlDollars >= 0 ? 'text-profit' : 'text-loss')}>
+          <p className={cn('text-lg sm:text-2xl font-bold', stats.totalPnlDollars >= 0 ? 'text-profit' : 'text-loss')}>
             {formatCurrency(stats.totalPnlDollars)}
           </p>
           <p className="text-xs text-muted-foreground mt-1">{formatPips(stats.totalPnlPips)}</p>
@@ -33,7 +33,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
 
       {/* Win Rate */}
       <Card className="relative overflow-hidden">
-        <CardContent className="p-5">
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-muted-foreground">Tỷ lệ thắng</p>
             <div className={cn(
@@ -43,7 +43,7 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
               <Target className={cn('h-4 w-4', stats.winRate >= 50 ? 'text-profit' : 'text-loss')} />
             </div>
           </div>
-          <p className={cn('text-2xl font-bold', stats.winRate >= 50 ? 'text-profit' : 'text-loss')}>
+          <p className={cn('text-lg sm:text-2xl font-bold', stats.winRate >= 50 ? 'text-profit' : 'text-loss')}>
             {formatPercentage(stats.winRate)}
           </p>
           <div className="flex items-center gap-2 mt-1">
@@ -66,19 +66,19 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
 
       {/* R:R Trung bình */}
       <Card className="relative overflow-hidden">
-        <CardContent className="p-5">
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-muted-foreground">R:R Trung bình</p>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
               <BarChart3 className="h-4 w-4 text-primary" />
             </div>
           </div>
-          <p className="text-2xl font-bold">{stats.avgRiskReward.toFixed(2)}</p>
-          <div className="flex items-center gap-3 mt-1">
+          <p className="text-lg sm:text-2xl font-bold">{stats.avgRiskReward.toFixed(2)}</p>
+          <div className="mt-1">
             <div className="flex items-center gap-1">
-              <Trophy className="h-3 w-3 text-profit" />
-              <span className="text-xs text-muted-foreground">
-                Tốt nhất: <span className="text-profit font-medium">{formatCurrency(stats.bestTrade)}</span>
+              <Trophy className="h-3 w-3 text-profit shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">
+                Best: <span className="text-profit font-medium">{formatCurrency(stats.bestTrade)}</span>
               </span>
             </div>
           </div>
@@ -87,14 +87,14 @@ export function StatsOverview({ stats }: StatsOverviewProps) {
 
       {/* Tổng lệnh & Streak */}
       <Card className="relative overflow-hidden">
-        <CardContent className="p-5">
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <p className="text-sm font-medium text-muted-foreground">Tổng lệnh</p>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
               <Flame className="h-4 w-4 text-primary" />
             </div>
           </div>
-          <p className="text-2xl font-bold">{stats.totalTrades}</p>
+          <p className="text-lg sm:text-2xl font-bold">{stats.totalTrades}</p>
           <div className="flex items-center gap-1 mt-1">
             <span className="text-xs text-muted-foreground">Chuỗi hiện tại:</span>
             <span className={cn(
