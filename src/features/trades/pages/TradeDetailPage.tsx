@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil, ZoomIn } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -28,6 +28,7 @@ export function TradeDetailPage() {
   const [closeDialogOpen, setCloseDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   if (isLoading || !trade) return <LoadingSpinner className="mt-20" />
 
@@ -180,12 +181,16 @@ export function TradeDetailPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
                 {trade.screenshot_urls.map((url, i) => (
-                  <img
-                    key={i}
-                    src={url}
-                    alt={`Chart ${i + 1}`}
-                    className="rounded-lg border w-full"
-                  />
+                  <div key={i} className="relative group cursor-pointer" onClick={() => setPreviewUrl(url)}>
+                    <img
+                      src={url}
+                      alt={`Chart ${i + 1}`}
+                      className="rounded-lg border w-full"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 rounded-lg">
+                      <ZoomIn className="h-6 w-6 text-white drop-shadow" />
+                    </div>
+                  </div>
                 ))}
               </div>
             </CardContent>
@@ -264,6 +269,19 @@ export function TradeDetailPage() {
               {deleteTrade.isPending ? 'Đang xoá...' : 'Xoá lệnh'}
             </Button>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Screenshot preview dialog */}
+      <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
+        <DialogContent className="max-w-3xl max-h-[95vh] overflow-y-auto p-2 sm:p-4">
+          {previewUrl && (
+            <img
+              src={previewUrl}
+              alt="Preview"
+              className="w-full rounded-lg"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
