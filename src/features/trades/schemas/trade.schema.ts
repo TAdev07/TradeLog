@@ -16,6 +16,7 @@ export const tradeEntrySchema = z.object({
   entry_price: z.coerce.number().positive('Giá vào lệnh phải lớn hơn 0'),
   stop_loss: optionalPositiveNumber,
   take_profit: optionalPositiveNumber,
+  opened_at: z.string().min(1, 'Chọn thời gian'),
 })
 
 export const tradeCloseSchema = z.object({
@@ -25,6 +26,7 @@ export const tradeCloseSchema = z.object({
   pnl_pips: z.coerce.number(),
   emotion_notes: z.string().optional(),
   error_tags: z.array(z.string()).default([]),
+  closed_at: z.string().min(1, 'Chọn thời gian đóng'),
 })
 
 export type TradeEntryFormData = z.infer<typeof tradeEntrySchema>

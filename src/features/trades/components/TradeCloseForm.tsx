@@ -10,14 +10,20 @@ import { ErrorTagSelect } from './ErrorTagSelect'
 import { cn, calculatePips, calculateRiskReward, getPnlColor } from '@/lib/utils'
 import type { Trade } from '@/types/database'
 
+function toLocalDatetime(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 interface TradeCloseFormProps {
   trade: Trade
   onSubmit: (data: TradeCloseFormData) => void
   onCancel: () => void
   isLoading?: boolean
+  isEditing?: boolean
 }
 
-export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCloseFormProps) {
+export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading, isEditing }: TradeCloseFormProps) {
   const {
     register,
     handleSubmit,
@@ -26,11 +32,22 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
     formState: { errors },
   } = useForm<TradeCloseFormData>({
     resolver: zodResolver(tradeCloseSchema) as never,
-    defaultValues: {
-      error_tags: [],
-      pnl_pips: 0,
-      pnl_dollars: 0,
-    },
+    defaultValues: isEditing
+      ? {
+          status: trade.status as 'win' | 'loss' | 'breakeven',
+          close_price: trade.close_price ?? undefined,
+          pnl_dollars: trade.pnl_dollars ?? 0,
+          pnl_pips: trade.pnl_pips ?? 0,
+          emotion_notes: trade.emotion_notes ?? '',
+          error_tags: trade.error_tags ?? [],
+          closed_at: trade.closed_at ? toLocalDatetime(new Date(trade.closed_at)) : toLocalDatetime(new Date()),
+        }
+      : {
+          error_tags: [],
+          pnl_pips: 0,
+          pnl_dollars: 0,
+          closed_at: toLocalDatetime(new Date()),
+        },
   })
 
   const status = watch('status')
@@ -50,15 +67,26 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
     ? calculateRiskReward(trade.entry_price, closePrice, trade.stop_loss, trade.direction)
     : null
 
-  // Auto-fill pips field when close price changes
+  // Auto-calculate PnL ($) estimate
+  // For XAUUSD: PnL = pips * 10 * lot_size (1 pip = $10 per lot)
+  // For JPY pairs: PnL = pips * 1000 * lot_size / 100 (approximate)
+  // For standard pairs: PnL = pips * 100000 * lot_size / 10000 = pips * 10 * lot_size
+  const autoPnlDollars = directedPips !== null
+    ? Math.round(directedPips * 10 * trade.lot_size * 100) / 100
+    : null
+
+  // Auto-fill pips and PnL when close price changes
   useEffect(() => {
     if (closePrice && closePrice > 0 && closePrice !== prevClosePrice.current) {
       prevClosePrice.current = closePrice
       if (directedPips !== null) {
         setValue('pnl_pips', directedPips)
       }
+      if (autoPnlDollars !== null) {
+        setValue('pnl_dollars', autoPnlDollars)
+      }
     }
-  }, [closePrice, directedPips, setValue])
+  }, [closePrice, directedPips, autoPnlDollars, setValue])
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -105,7 +133,14 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
 
         {/* PnL Dollars */}
         <div className="space-y-2">
-          <Label htmlFor="pnl_dollars">PnL ($)</Label>
+          <Label htmlFor="pnl_dollars">
+            PnL ($)
+            {autoPnlDollars !== null && (
+              <span className={cn('ml-1 text-xs', getPnlColor(autoPnlDollars))}>
+                (tự tính)
+              </span>
+            )}
+          </Label>
           <Input
             id="pnl_dollars"
             type="number"
@@ -146,6 +181,14 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
               </span>
             </div>
           )}
+          {autoPnlDollars !== null && (
+            <div>
+              <span className="text-muted-foreground">PnL ước tính: </span>
+              <span className={cn('font-medium', getPnlColor(autoPnlDollars))}>
+                {autoPnlDollars > 0 ? '+' : ''}{autoPnlDollars.toFixed(2)}$
+              </span>
+            </div>
+          )}
           {autoRR !== null && (
             <div>
               <span className="text-muted-foreground">R:R: </span>
@@ -156,6 +199,19 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
           )}
         </div>
       )}
+
+      {/* Closed At */}
+      <div className="space-y-2">
+        <Label htmlFor="closed_at">Thời gian đóng lệnh</Label>
+        <Input
+          id="closed_at"
+          type="datetime-local"
+          {...register('closed_at')}
+        />
+        {errors.closed_at && (
+          <p className="text-sm text-destructive">{errors.closed_at.message}</p>
+        )}
+      </div>
 
       {/* Error Tags */}
       <div className="space-y-2">
@@ -182,7 +238,7 @@ export function TradeCloseForm({ trade, onSubmit, onCancel, isLoading }: TradeCl
           Huỷ
         </Button>
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Đang lưu...' : 'Đóng lệnh'}
+          {isLoading ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Đóng lệnh'}
         </Button>
       </div>
     </form>

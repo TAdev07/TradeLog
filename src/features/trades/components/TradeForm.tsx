@@ -19,6 +19,11 @@ interface TradeFormProps {
   isLoading?: boolean
 }
 
+function toLocalDatetime(date: Date): string {
+  const pad = (n: number) => n.toString().padStart(2, '0')
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
+
 export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
   const {
     register,
@@ -31,6 +36,7 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
     defaultValues: {
       pair: 'XAUUSD',
       direction: 'long',
+      opened_at: toLocalDatetime(new Date()),
     },
   })
 
@@ -178,6 +184,19 @@ export function TradeForm({ onSubmit, isLoading }: TradeFormProps) {
           <span className="font-medium">{(tpPips / slPips).toFixed(2)}</span>
         </div>
       ) : null}
+
+      {/* Opened At */}
+      <div className="space-y-2">
+        <Label htmlFor="opened_at">Thời gian vào lệnh</Label>
+        <Input
+          id="opened_at"
+          type="datetime-local"
+          {...register('opened_at')}
+        />
+        {errors.opened_at && (
+          <p className="text-sm text-destructive">{errors.opened_at.message}</p>
+        )}
+      </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
         {isLoading ? 'Đang lưu...' : 'Mở lệnh'}

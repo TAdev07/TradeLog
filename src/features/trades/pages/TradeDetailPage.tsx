@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2 } from 'lucide-react'
+import { ArrowLeft, ArrowUpRight, ArrowDownRight, Trash2, Pencil } from 'lucide-react'
 import { format } from 'date-fns'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -12,7 +12,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { TradeCloseForm } from '../components/TradeCloseForm'
-import { useTrade, useCloseTrade, useDeleteTrade } from '../hooks/useTrades'
+import { useTrade, useCloseTrade, useUpdateClosedTrade, useDeleteTrade } from '../hooks/useTrades'
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner'
 import { cn, formatCurrency, formatPips, getPnlColor } from '@/lib/utils'
 import { STATUS_LABELS, ERROR_TAGS } from '@/lib/constants'
@@ -23,8 +23,10 @@ export function TradeDetailPage() {
   const navigate = useNavigate()
   const { data: trade, isLoading } = useTrade(id!)
   const closeTrade = useCloseTrade()
+  const updateClosedTrade = useUpdateClosedTrade()
   const deleteTrade = useDeleteTrade()
   const [closeDialogOpen, setCloseDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   if (isLoading || !trade) return <LoadingSpinner className="mt-20" />
@@ -32,6 +34,11 @@ export function TradeDetailPage() {
   const handleClose = async (data: TradeCloseFormData) => {
     await closeTrade.mutateAsync({ id: trade.id, data, trade })
     setCloseDialogOpen(false)
+  }
+
+  const handleEdit = async (data: TradeCloseFormData) => {
+    await updateClosedTrade.mutateAsync({ id: trade.id, data, trade })
+    setEditDialogOpen(false)
   }
 
   const handleDelete = async () => {
@@ -192,6 +199,12 @@ export function TradeDetailPage() {
               Đóng lệnh
             </Button>
           )}
+          {trade.status !== 'open' && (
+            <Button variant="outline" className="flex-1" onClick={() => setEditDialogOpen(true)}>
+              <Pencil className="h-4 w-4 mr-2" />
+              Chỉnh sửa
+            </Button>
+          )}
           <Button
             variant="outline"
             className="text-destructive"
@@ -214,6 +227,22 @@ export function TradeDetailPage() {
             onSubmit={handleClose}
             onCancel={() => setCloseDialogOpen(false)}
             isLoading={closeTrade.isPending}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit closed trade dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Chỉnh sửa lệnh {trade.pair}</DialogTitle>
+          </DialogHeader>
+          <TradeCloseForm
+            trade={trade}
+            onSubmit={handleEdit}
+            onCancel={() => setEditDialogOpen(false)}
+            isLoading={updateClosedTrade.isPending}
+            isEditing
           />
         </DialogContent>
       </Dialog>
