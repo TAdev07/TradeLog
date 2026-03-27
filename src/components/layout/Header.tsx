@@ -18,9 +18,16 @@ export function Header() {
   }
 
   return (
-    <header className="flex h-14 items-center justify-between border-b bg-background px-6">
-      <div />
-      <div className="flex items-center gap-2">
+    <header className="flex h-14 items-center justify-between border-b bg-background px-3 sm:px-4 md:px-6">
+      {/* Mobile: show app name since sidebar is hidden */}
+      <div className="flex items-center gap-2 md:hidden">
+        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold text-xs">
+          TL
+        </div>
+        <span className="font-semibold">TradeLog</span>
+      </div>
+      <div className="hidden md:block" />
+      <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" onClick={toggleTheme}>
           {theme === 'dark' ? (
             <Sun className="h-4 w-4" />
