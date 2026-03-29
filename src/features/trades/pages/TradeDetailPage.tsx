@@ -55,6 +55,7 @@ export function TradeDetailPage() {
       blob: new Blob(), // existing images don't need re-upload unless changed
       markers: annotations[i]?.markers ?? [],
       lines: annotations[i]?.lines ?? [],
+      shapes: annotations[i]?.shapes ?? [],
     }))
     setEditScreenshots(existing)
     setEditDialogOpen(true)
@@ -78,7 +79,7 @@ export function TradeDetailPage() {
         // Existing screenshot, keep URL
         screenshotUrls.push(s.previewUrl)
       }
-      screenshotAnnotations.push({ markers: s.markers, lines: s.lines })
+      screenshotAnnotations.push({ markers: s.markers, lines: s.lines, shapes: s.shapes ?? [] })
     }
 
     // Upload new blobs
@@ -108,55 +109,44 @@ export function TradeDetailPage() {
 
   const openFullscreen = (index: number) => {
     const url = trade.screenshot_urls[index]
-    const ann = annotations[index] ?? { markers: [], lines: [] }
+    const ann = annotations[index] ?? { markers: [], lines: [], shapes: [] }
     const win = window.open('', '_blank')
     if (!win) return
-
     const markersJson = JSON.stringify(ann.markers)
     const linesJson = JSON.stringify(ann.lines)
-
+    const shapesJson = JSON.stringify(ann.shapes ?? [])
     win.document.write(`<!DOCTYPE html><html><head><title>Preview</title>
-<style>
-  *{margin:0;padding:0;background:#000}
-  .container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
-  img{max-width:100vw;max-height:100vh;object-fit:contain}
-</style></head><body>
-<div class="container" id="c">
-  <img id="img" src="${url}" />
-</div>
+<style>*{margin:0;padding:0;background:#000}.container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}img{max-width:100vw;max-height:100vh;object-fit:contain}</style></head><body>
+<div class="container" id="c"><img id="img" src="${url}" /></div>
 <script>
-  const img = document.getElementById('img');
-  const markers = ${markersJson};
-  const lines = ${linesJson};
-  img.onload = function() {
-    const w = img.clientWidth, h = img.clientHeight;
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    const rect = img.getBoundingClientRect();
-    svg.style.cssText = 'position:absolute;width:'+w+'px;height:'+h+'px;left:'+rect.left+'px;top:'+rect.top+'px;pointer-events:none';
-    lines.forEach(function(line) {
-      if (line.points.length < 2) return;
-      const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-      pl.setAttribute('points', line.points.map(function(p){return (p.x*w)+','+(p.y*h)}).join(' '));
-      pl.setAttribute('fill', 'none');
-      pl.setAttribute('stroke', line.color);
-      pl.setAttribute('stroke-width', Math.max(1, 2*line.width));
-      pl.setAttribute('stroke-linecap', 'round');
+  var img=document.getElementById('img'),markers=${markersJson},lines=${linesJson},shapes=${shapesJson};
+  img.onload=function(){
+    var w=img.clientWidth,h=img.clientHeight;
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 '+w+' '+h);
+    var rect=img.getBoundingClientRect();
+    svg.style.cssText='position:absolute;width:'+w+'px;height:'+h+'px;left:'+rect.left+'px;top:'+rect.top+'px;pointer-events:none';
+    shapes.forEach(function(s){
+      var el,sx=s.x*w,sy=s.y*h,sw=s.w*w,sh=s.h*h,stroke=s.strokeWidth>0?s.color:'none',dash=s.dash?'8 4':'';
+      if(s.type==='rect'){el=document.createElementNS('http://www.w3.org/2000/svg','rect');el.setAttribute('x',sx);el.setAttribute('y',sy);el.setAttribute('width',sw);el.setAttribute('height',sh);}
+      else{el=document.createElementNS('http://www.w3.org/2000/svg','ellipse');el.setAttribute('cx',sx+sw/2);el.setAttribute('cy',sy+sh/2);el.setAttribute('rx',Math.abs(sw/2));el.setAttribute('ry',Math.abs(sh/2));}
+      el.setAttribute('fill',s.color);el.setAttribute('fill-opacity',s.opacity);el.setAttribute('stroke',stroke);if(s.strokeWidth>0)el.setAttribute('stroke-width',s.strokeWidth);if(dash)el.setAttribute('stroke-dasharray',dash);
+      svg.appendChild(el);
+    });
+    lines.forEach(function(line){
+      if(line.points.length<2)return;
+      var pl=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+      pl.setAttribute('points',line.points.map(function(p){return(p.x*w)+','+(p.y*h)}).join(' '));
+      pl.setAttribute('fill','none');pl.setAttribute('stroke',line.color);pl.setAttribute('stroke-width',Math.max(1,2*line.width));pl.setAttribute('stroke-linecap','round');
+      if(line.dash)pl.setAttribute('stroke-dasharray','8 4');
       svg.appendChild(pl);
     });
-    markers.forEach(function(m) {
-      var isBuy = m.type === 'buy';
-      var color = isBuy ? '#4ade80' : '#f87171';
-      var cx = m.x * w, cy = m.y * h;
-      var s = Math.max(16, w * 0.03) * m.size;
-      var pts = isBuy
-        ? [[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]
-        : [[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
-      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      poly.setAttribute('points', pts.map(function(d){return (cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
-      poly.setAttribute('fill', color);
-      poly.setAttribute('stroke', color);
-      poly.setAttribute('stroke-width', '2');
+    markers.forEach(function(m){
+      var isBuy=m.type==='buy',color=isBuy?'#4ade80':'#f87171',cx=m.x*w,cy=m.y*h,s=Math.max(16,w*0.03)*m.size;
+      var pts=isBuy?[[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]:[[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
+      var poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      poly.setAttribute('points',pts.map(function(d){return(cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
+      poly.setAttribute('fill',color);poly.setAttribute('stroke',color);poly.setAttribute('stroke-width','2');
       svg.appendChild(poly);
     });
     document.getElementById('c').appendChild(svg);
@@ -166,8 +156,8 @@ export function TradeDetailPage() {
   }
 
   const previewAnnotation = previewIndex !== null
-    ? annotations[previewIndex] ?? { markers: [], lines: [] }
-    : { markers: [], lines: [] }
+    ? annotations[previewIndex] ?? { markers: [], lines: [], shapes: [] }
+    : { markers: [], lines: [], shapes: [] }
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -302,7 +292,7 @@ export function TradeDetailPage() {
             <CardContent>
               <div className="grid grid-cols-2 gap-3">
                 {trade.screenshot_urls.map((url, i) => {
-                  const ann = annotations[i] ?? { markers: [], lines: [] }
+                  const ann = annotations[i] ?? { markers: [], lines: [], shapes: [] }
                   return (
                     <div key={i} className="relative group cursor-pointer" onClick={() => setPreviewIndex(i)}>
                       <ChartOverlay

@@ -10,7 +10,7 @@ import {
 import { ChartAnnotator } from './ChartAnnotator'
 import { ChartOverlay } from './ChartOverlay'
 import { resizeImage } from '@/lib/image-utils'
-import type { Marker, Line, ScreenshotAnnotation } from '../types/annotation'
+import type { Marker, Line, Shape, ScreenshotAnnotation } from '../types/annotation'
 
 export interface LocalScreenshot {
   id: string
@@ -22,6 +22,8 @@ export interface LocalScreenshot {
   markers: Marker[]
   /** Annotation lines */
   lines: Line[]
+  /** Annotation shapes */
+  shapes: Shape[]
 }
 
 interface ScreenshotUploadProps {
@@ -53,6 +55,7 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
           blob: resizedBlob,
           markers: [],
           lines: [],
+          shapes: [],
         })
       }
 
@@ -75,6 +78,7 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
       ...updated[index],
       markers: annotations.markers,
       lines: annotations.lines,
+      shapes: annotations.shapes ?? [],
     }
     onChange(updated)
     setEditingIndex(null)
@@ -84,69 +88,52 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
   const previewScreenshot = previewIndex !== null ? screenshots[previewIndex] : null
 
   const openFullscreen = (screenshot: LocalScreenshot) => {
-    // Open fullscreen with overlay - create a simple HTML page with the image and SVG overlay
     const win = window.open('', '_blank')
     if (!win) return
-
     const markersJson = JSON.stringify(screenshot.markers)
     const linesJson = JSON.stringify(screenshot.lines)
-
+    const shapesJson = JSON.stringify(screenshot.shapes ?? [])
     win.document.write(`<!DOCTYPE html><html><head><title>Preview</title>
-<style>
-  *{margin:0;padding:0;background:#000}
-  .container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}
-  img{max-width:100vw;max-height:100vh;object-fit:contain}
-  svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
-</style></head><body>
-<div class="container" id="c">
-  <img id="img" src="${screenshot.previewUrl}" />
-</div>
+<style>*{margin:0;padding:0;background:#000}.container{position:relative;width:100vw;height:100vh;display:flex;align-items:center;justify-content:center}img{max-width:100vw;max-height:100vh;object-fit:contain}</style></head><body>
+<div class="container" id="c"><img id="img" src="${screenshot.previewUrl}" /></div>
 <script>
-  const img = document.getElementById('img');
-  const markers = ${markersJson};
-  const lines = ${linesJson};
-  img.onload = function() {
-    const w = img.clientWidth, h = img.clientHeight;
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
-    svg.style.cssText = 'position:absolute;width:'+w+'px;height:'+h+'px;pointer-events:none';
-    const container = document.getElementById('c');
-    // Center SVG over image
-    const rect = img.getBoundingClientRect();
-    svg.style.left = rect.left + 'px';
-    svg.style.top = rect.top + 'px';
-    lines.forEach(function(line) {
-      if (line.points.length < 2) return;
-      const pl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-      pl.setAttribute('points', line.points.map(function(p){return (p.x*w)+','+(p.y*h)}).join(' '));
-      pl.setAttribute('fill', 'none');
-      pl.setAttribute('stroke', line.color);
-      pl.setAttribute('stroke-width', Math.max(1, 2*line.width));
-      pl.setAttribute('stroke-linecap', 'round');
+  var img=document.getElementById('img'),markers=${markersJson},lines=${linesJson},shapes=${shapesJson};
+  img.onload=function(){
+    var w=img.clientWidth,h=img.clientHeight;
+    var svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('viewBox','0 0 '+w+' '+h);
+    var rect=img.getBoundingClientRect();
+    svg.style.cssText='position:absolute;width:'+w+'px;height:'+h+'px;left:'+rect.left+'px;top:'+rect.top+'px;pointer-events:none';
+    shapes.forEach(function(s){
+      var el,sx=s.x*w,sy=s.y*h,sw=s.w*w,sh=s.h*h,stroke=s.strokeWidth>0?s.color:'none',dash=s.dash?'8 4':'';
+      if(s.type==='rect'){el=document.createElementNS('http://www.w3.org/2000/svg','rect');el.setAttribute('x',sx);el.setAttribute('y',sy);el.setAttribute('width',sw);el.setAttribute('height',sh);}
+      else{el=document.createElementNS('http://www.w3.org/2000/svg','ellipse');el.setAttribute('cx',sx+sw/2);el.setAttribute('cy',sy+sh/2);el.setAttribute('rx',Math.abs(sw/2));el.setAttribute('ry',Math.abs(sh/2));}
+      el.setAttribute('fill',s.color);el.setAttribute('fill-opacity',s.opacity);el.setAttribute('stroke',stroke);if(s.strokeWidth>0)el.setAttribute('stroke-width',s.strokeWidth);if(dash)el.setAttribute('stroke-dasharray',dash);
+      svg.appendChild(el);
+    });
+    lines.forEach(function(line){
+      if(line.points.length<2)return;
+      var pl=document.createElementNS('http://www.w3.org/2000/svg','polyline');
+      pl.setAttribute('points',line.points.map(function(p){return(p.x*w)+','+(p.y*h)}).join(' '));
+      pl.setAttribute('fill','none');pl.setAttribute('stroke',line.color);pl.setAttribute('stroke-width',Math.max(1,2*line.width));pl.setAttribute('stroke-linecap','round');
+      if(line.dash)pl.setAttribute('stroke-dasharray','8 4');
       svg.appendChild(pl);
     });
-    markers.forEach(function(m) {
-      var isBuy = m.type === 'buy';
-      var color = isBuy ? '#4ade80' : '#f87171';
-      var cx = m.x * w, cy = m.y * h;
-      var s = Math.max(16, w * 0.03) * m.size;
-      var pts = isBuy
-        ? [[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]
-        : [[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
-      var poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      poly.setAttribute('points', pts.map(function(d){return (cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
-      poly.setAttribute('fill', color);
-      poly.setAttribute('stroke', color);
-      poly.setAttribute('stroke-width', '2');
+    markers.forEach(function(m){
+      var isBuy=m.type==='buy',color=isBuy?'#4ade80':'#f87171',cx=m.x*w,cy=m.y*h,s=Math.max(16,w*0.03)*m.size;
+      var pts=isBuy?[[0,-1],[-0.6,0.3],[-0.2,0.3],[-0.2,1],[0.2,1],[0.2,0.3],[0.6,0.3]]:[[0,1],[-0.6,-0.3],[-0.2,-0.3],[-0.2,-1],[0.2,-1],[0.2,-0.3],[0.6,-0.3]];
+      var poly=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+      poly.setAttribute('points',pts.map(function(d){return(cx+d[0]*s)+','+(cy+d[1]*s)}).join(' '));
+      poly.setAttribute('fill',color);poly.setAttribute('stroke',color);poly.setAttribute('stroke-width','2');
       svg.appendChild(poly);
     });
-    container.appendChild(svg);
+    document.getElementById('c').appendChild(svg);
   };
 </script></body></html>`)
     win.document.close()
   }
 
-  const annotationCount = (s: LocalScreenshot) => s.markers.length + s.lines.length
+  const annotationCount = (s: LocalScreenshot) => s.markers.length + s.lines.length + (s.shapes?.length ?? 0)
 
   return (
     <div className="space-y-3">
@@ -225,13 +212,14 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
           {editingScreenshot && editingIndex !== null && (
             <ChartAnnotator
               imageSrc={editingScreenshot.previewUrl}
-              annotations={{ markers: editingScreenshot.markers, lines: editingScreenshot.lines }}
+              annotations={{ markers: editingScreenshot.markers, lines: editingScreenshot.lines, shapes: editingScreenshot.shapes ?? [] }}
               onChange={(annotations) => {
                 const updated = [...screenshots]
                 updated[editingIndex] = {
                   ...updated[editingIndex],
                   markers: annotations.markers,
                   lines: annotations.lines,
+                  shapes: annotations.shapes ?? [],
                 }
                 onChange(updated)
               }}
@@ -249,7 +237,7 @@ export function ScreenshotUpload({ screenshots, onChange }: ScreenshotUploadProp
             <div className="relative">
               <ChartOverlay
                 imageSrc={previewScreenshot.previewUrl}
-                annotations={{ markers: previewScreenshot.markers, lines: previewScreenshot.lines }}
+                annotations={{ markers: previewScreenshot.markers, lines: previewScreenshot.lines, shapes: previewScreenshot.shapes ?? [] }}
               />
               <Button
                 type="button"

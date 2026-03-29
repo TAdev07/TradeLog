@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import type { ScreenshotAnnotation, Marker, Line } from '../types/annotation'
+import type { ScreenshotAnnotation, Marker, Line, Shape } from '../types/annotation'
 
 interface ChartOverlayProps {
   imageSrc: string
@@ -108,6 +108,45 @@ function LineSvg({ line, containerWidth, containerHeight }: {
       strokeWidth={Math.max(1, 2 * line.width)}
       strokeLinecap="round"
       strokeLinejoin="round"
+      strokeDasharray={line.dash ? '8 4' : undefined}
+    />
+  )
+}
+
+function ShapeSvg({ shape, containerWidth, containerHeight }: {
+  shape: Shape
+  containerWidth: number
+  containerHeight: number
+}) {
+  const sx = shape.x * containerWidth
+  const sy = shape.y * containerHeight
+  const sw = shape.w * containerWidth
+  const sh = shape.h * containerHeight
+  const stroke = shape.strokeWidth > 0 ? shape.color : 'none'
+  const strokeDash = shape.dash ? '8 4' : undefined
+
+  if (shape.type === 'rect') {
+    return (
+      <rect
+        x={sx} y={sy} width={sw} height={sh}
+        fill={shape.color}
+        fillOpacity={shape.opacity}
+        stroke={stroke}
+        strokeWidth={shape.strokeWidth > 0 ? shape.strokeWidth : undefined}
+        strokeDasharray={strokeDash}
+      />
+    )
+  }
+
+  return (
+    <ellipse
+      cx={sx + sw / 2} cy={sy + sh / 2}
+      rx={Math.abs(sw / 2)} ry={Math.abs(sh / 2)}
+      fill={shape.color}
+      fillOpacity={shape.opacity}
+      stroke={stroke}
+      strokeWidth={shape.strokeWidth > 0 ? shape.strokeWidth : undefined}
+      strokeDasharray={strokeDash}
     />
   )
 }
@@ -147,7 +186,11 @@ export function ChartOverlay({ imageSrc, annotations, className }: ChartOverlayP
     })
   }
 
-  const hasAnnotations = annotations.markers.length > 0 || annotations.lines.length > 0
+  const shapes = annotations.shapes ?? []
+  const hasAnnotations =
+    annotations.markers.length > 0 ||
+    annotations.lines.length > 0 ||
+    shapes.length > 0
 
   return (
     <div ref={containerRef} className={`relative inline-block ${className ?? ''}`}>
@@ -164,6 +207,16 @@ export function ChartOverlay({ imageSrc, annotations, className }: ChartOverlayP
           viewBox={`0 0 ${size.width} ${size.height}`}
           preserveAspectRatio="none"
         >
+          {/* Shapes (bottom layer) */}
+          {shapes.map((shape) => (
+            <ShapeSvg
+              key={shape.id}
+              shape={shape}
+              containerWidth={size.width}
+              containerHeight={size.height}
+            />
+          ))}
+          {/* Lines */}
           {annotations.lines.map((line) => (
             <LineSvg
               key={line.id}
@@ -172,6 +225,7 @@ export function ChartOverlay({ imageSrc, annotations, className }: ChartOverlayP
               containerHeight={size.height}
             />
           ))}
+          {/* Markers (top layer) */}
           {annotations.markers.map((marker) => (
             <g key={marker.id} style={{ pointerEvents: 'auto' }}>
               <ArrowMarkerSvg
