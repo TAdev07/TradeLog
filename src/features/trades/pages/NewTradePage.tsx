@@ -28,6 +28,7 @@ export function NewTradePage() {
     const screenshotAnnotations = screenshots.map((s) => ({
       markers: s.markers,
       lines: s.lines,
+      shapes: s.shapes ?? [],
     }))
 
     await createTrade.mutateAsync({
